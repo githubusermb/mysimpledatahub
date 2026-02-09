@@ -70,12 +70,12 @@ output "lakeformation_setup_command" {
 
 output "dynamic_views_job_name" {
   description = "Name of the dynamic views Glue job"
-  value       = aws_glue_job.dynamic_views_job.name
+  value       = aws_glue_job.views_dual_engine_job.name
 }
 
 output "example_run_dynamic_views_job_command" {
   description = "Example AWS CLI command to run the dynamic views job"
-  value       = "aws glue start-job-run --job-name ${aws_glue_job.dynamic_views_job.name}"
+  value       = "aws glue start-job-run --job-name ${aws_glue_job.views_dual_engine_job.name}"
 }
 
 output "athena_users_with_permissions" {
