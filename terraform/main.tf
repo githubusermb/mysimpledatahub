@@ -199,6 +199,30 @@ resource "aws_iam_policy" "glue_athena_access" {
   })
 }
 
+# IAM PassRole policy for Glue role (needed for view creation)
+resource "aws_iam_policy" "glue_passrole_access" {
+  name = "GluePassRoleAccess"
+  description = "Policy for Glue to pass its own role when creating views"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "iam:PassRole"
+        ]
+        Effect = "Allow"
+        Resource = aws_iam_role.glue_service_role.arn
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "glue.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+}
+
 # Attach custom S3 policy to Glue role
 resource "aws_iam_role_policy_attachment" "glue_s3_policy_attachment" {
   role = aws_iam_role.glue_service_role.name
@@ -221,6 +245,12 @@ resource "aws_iam_role_policy_attachment" "glue_lakeformation_policy_attachment"
 resource "aws_iam_role_policy_attachment" "glue_athena_policy_attachment" {
   role = aws_iam_role.glue_service_role.name
   policy_arn = aws_iam_policy.glue_athena_access.arn
+}
+
+# Attach PassRole policy to Glue role
+resource "aws_iam_role_policy_attachment" "glue_passrole_policy_attachment" {
+  role = aws_iam_role.glue_service_role.name
+  policy_arn = aws_iam_policy.glue_passrole_access.arn
 }
 
 # Upload Glue script to S3

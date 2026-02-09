@@ -134,7 +134,7 @@ aws_region          = "us-east-1"
 s3_bucket_name      = "your-unique-bucket-name"
 glue_database_name  = "iceberg_db"
 glue_table_name     = "entity_data"
-csv_data_prefix     = "source-data/"
+csv_data_prefix     = "raw-data/"
 iceberg_data_prefix = "iceberg-data/"
 ```
 
@@ -162,10 +162,10 @@ This creates:
 
 ```bash
 # Upload your CSV files
-aws s3 cp your-data.csv s3://your-bucket/source-data/
+aws s3 cp your-data.csv s3://your-bucket/raw-data/
 
 # Or upload entire directory
-aws s3 sync ./local-data/ s3://your-bucket/source-data/
+aws s3 sync ./local-data/ s3://your-bucket/raw-data/
 ```
 
 **CSV Requirements:**
@@ -274,7 +274,7 @@ aws_region = "us-east-1"
 
 # S3 Configuration
 s3_bucket_name      = "my-data-lake-bucket-12345"  # Must be globally unique
-csv_data_prefix     = "source-data/"
+csv_data_prefix     = "raw-data/"
 iceberg_data_prefix = "iceberg-data/"
 
 # Glue Configuration
@@ -339,10 +339,10 @@ The Terraform configuration expects Iceberg JARs in S3. Upload them:
 ```bash
 # Download Iceberg JARs
 wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.4_2.12/1.4.2/iceberg-spark-runtime-3.4_2.12-1.4.2.jar
-wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws/1.4.2/iceberg-aws-1.4.2.jar
-wget https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.20.18/bundle-2.20.18.jar
-wget https://repo1.maven.org/maven2/software/amazon/awssdk/apache-client/2.20.18/apache-client-2.20.18.jar
-wget https://repo1.maven.org/maven2/software/amazon/awssdk/url-connection-client/2.20.18/url-connection-client-2.20.18.jar
+wget -O jars/iceberg-aws-1.4.2.jar https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws/1.4.2/iceberg-aws-1.4.2.jar
+wget -O jars/bundle-2.20.18.jar https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.20.18/bundle-2.20.18.jar
+wget -O jars/apache-client-2.20.18.jar https://repo1.maven.org/maven2/software/amazon/awssdk/apache-client/2.20.18/apache-client-2.20.18.jar
+wget -O jars/url-connection-client-2.20.18.jar https://repo1.maven.org/maven2/software/amazon/awssdk/url-connection-client/2.20.18/url-connection-client-2.20.18.jar
 
 # Upload to S3
 aws s3 cp iceberg-spark-runtime-3.4_2.12-1.4.2.jar s3://your-bucket/jars/
@@ -365,7 +365,7 @@ entity1_set2,value2_2,value3_2,value4_2,key_set2_1006,value_1006
 
 **Upload to S3:**
 ```bash
-aws s3 cp data.csv s3://your-bucket/source-data/
+aws s3 cp data.csv s3://your-bucket/raw-data/
 ```
 
 ### Step 6: Run Data Ingestion
@@ -389,7 +389,7 @@ aws logs tail /aws-glue/jobs/output --follow
 
 **Expected output:**
 ```
-Reading CSV files from s3://bucket/source-data/
+Reading CSV files from s3://bucket/raw-data/
 Found 1000 rows
 Writing to Iceberg table: glue_catalog.iceberg_db.entity_data
 ✓ Successfully wrote 1000 rows
@@ -550,7 +550,7 @@ view_df.show()
 
 ```bash
 # Upload new CSV files
-aws s3 cp new-data.csv s3://your-bucket/source-data/
+aws s3 cp new-data.csv s3://your-bucket/raw-data/
 
 # Re-run ingestion (appends data)
 aws glue start-job-run --job-name csv-to-iceberg-ingestion

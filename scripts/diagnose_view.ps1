@@ -1,7 +1,7 @@
 # PowerShell script to diagnose view column issues
 param(
     [Parameter(Mandatory=$true)]
-    [string]$ViewName = "entity_view_entity1_set2",
+    [string]$ViewName = "entity_view_FRY9C",
     
     [string]$DatabaseName = "iceberg_db"
 )

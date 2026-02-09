@@ -40,7 +40,7 @@ aws_region          = "us-east-1"
 s3_bucket_name      = "your-unique-bucket-name"  # Change this!
 glue_database_name  = "iceberg_db"
 glue_table_name     = "entity_data"
-csv_data_prefix     = "source-data/"
+csv_data_prefix     = "raw-data/"
 iceberg_data_prefix = "iceberg-data/"
 ```
 
@@ -57,7 +57,7 @@ terraform apply
 Your CSV must have these columns: entity1,entity2,entity3,entity4,key,value
 
 ```bash
-aws s3 cp your-data.csv s3://your-bucket/source-data/
+aws s3 cp your-data.csv s3://your-bucket/raw-data/
 ```
 
 ### 4. Run Data Ingestion

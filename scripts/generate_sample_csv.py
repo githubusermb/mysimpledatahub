@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Script to generate sample CSV data for testing the data ingestion pipeline.
-The CSV file will have the following columns: entity1,entity2,entity3,entity4,key,value
+The CSV file will have the following columns: seriesid,aod,rssdid,submissionts,key,value
 """
 
 import os
@@ -13,10 +13,10 @@ from datetime import datetime
 def generate_sample_data(output_dir, timestamp=None):
     """
     Generate sample CSV data with the specified structure:
-    - First 1000 records: Same values for entity1-entity4, distinct key and value
-    - Next 1000 records: Same values for entity1, entity2, entity3, and key as first set,
-                         but different values for entity4 and value columns
-    - Next 1000 records: Different entity1, key, and value, but same entity2, entity3, entity4
+    - First 1000 records: Same values for seriesid-submissionts, distinct key and value
+    - Next 1000 records: Same values for seriesid, aod, rssdid, and key as first set,
+                         but different values for submissionts and value columns
+    - Next 1000 records: Different seriesid, key, and value, but same aod, rssdid, submissionts
     
     Args:
         output_dir (str): Directory to save the CSV file
@@ -34,38 +34,38 @@ def generate_sample_data(output_dir, timestamp=None):
     with open(output_file, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         # Write header
-        writer.writerow(['entity1', 'entity2', 'entity3', 'entity4', 'key', 'value'])
+        writer.writerow(['seriesid', 'aod', 'rssdid', 'submissionts', 'key', 'value'])
         
-        # First 1000 records: Same values for entity1-entity4, distinct key and value
+        # First 1000 records: Same values for seriesid-submissionts, distinct key and value
         for i in range(1, 1001):
             writer.writerow([
-                'entity1_set1',
-                'entity2_set1',
-                'entity3_set1',
-                'entity4_set1',
+                'seriesid_set1',
+                'aod_set1',
+                'rssdid_set1',
+                'submissionts_set1',
                 f'key_{i}',
                 f'value_{i}'
             ])
         
-        # Next 1000 records: Change data for entity4 and value columns only
-        # Keep the same values for entity1, entity2, entity3, and key as the first 1000 records
+        # Next 1000 records: Change data for submissionts and value columns only
+        # Keep the same values for seriesid, aod, rssdid, and key as the first 1000 records
         for i in range(1, 1001):
             writer.writerow([
-                'entity1_set1',
-                'entity2_set1',
-                'entity3_set1',
-                'entity4_set2',  # Changed entity4
+                'seriesid_set1',
+                'aod_set1',
+                'rssdid_set1',
+                'submissionts_set2',  # Changed submissionts
                 f'key_{i}',      # Same key as first set
                 f'value_changed_{i}'  # Changed value
             ])
         
-        # Next 1000 records: Different entity1, key, value
+        # Next 1000 records: Different seriesid, key, value
         for i in range(1001, 2001):
             writer.writerow([
-                'entity1_set2',  # Changed entity1
-                'entity2_set1',
-                'entity3_set1',
-                'entity4_set1',
+                'seriesid_set2',  # Changed seriesid
+                'aod_set1',
+                'rssdid_set1',
+                'submissionts_set1',
                 f'key_set2_{i}',  # Changed key
                 f'value_set2_{i}'  # Changed value
             ])

@@ -32,28 +32,28 @@ print(f"Table prefix: {table_prefix}")
 # Read the source table using the Glue catalog
 source_df = spark.sql(f"SELECT * FROM glue_catalog.{database_name}.{source_table_name}")
 
-# Get distinct entity1 values
-entity1_values = [row.entity1 for row in source_df.select("entity1").distinct().collect()]
-print(f"Found {len(entity1_values)} distinct entity1 values")
+# Get distinct seriesid values
+seriesid_values = [row.seriesid for row in source_df.select("seriesid").distinct().collect()]
+print(f"Found {len(seriesid_values)} distinct seriesid values")
 
-# Create materialized tables for each entity1 value
+# Create materialized tables for each seriesid value
 created_tables = []
 failed_tables = []
 
-for entity1_value in entity1_values:
+for seriesid_value in seriesid_values:
     print(f"\n{'='*80}")
-    print(f"Processing entity1 = '{entity1_value}'")
+    print(f"Processing seriesid = '{seriesid_value}'")
     print(f"{'='*80}")
     
-    # Filter data for this entity1 value
-    entity_df = source_df.filter(col("entity1") == entity1_value)
+    # Filter data for this seriesid value
+    entity_df = source_df.filter(col("seriesid") == seriesid_value)
     
-    # Get distinct key values for this specific entity1 value
+    # Get distinct key values for this specific seriesid value
     entity_key_values = [row.key for row in entity_df.select("key").distinct().collect()]
     print(f"Found {len(entity_key_values)} distinct key values")
     
-    # Create table name based on entity1 value
-    table_name = f"{table_prefix}_{entity1_value}"
+    # Create table name based on seriesid value
+    table_name = f"{table_prefix}_{seriesid_value}"
     full_table_name = f"glue_catalog.{database_name}.{table_name}"
     
     # Build the pivot query
@@ -63,17 +63,17 @@ for entity1_value in entity1_values:
     
     pivot_query = f"""
     SELECT 
-        entity1,
-        entity2,
-        entity3,
-        entity4,
+        seriesid,
+        aod,
+        rssdid,
+        submissionts,
         {', '.join(case_statements)}
     FROM 
         glue_catalog.{database_name}.{source_table_name}
     WHERE
-        entity1 = '{entity1_value}'
+        seriesid = '{seriesid_value}'
     GROUP BY 
-        entity1, entity2, entity3, entity4
+        seriesid, aod, rssdid, submissionts
     """
     
     try:
@@ -119,7 +119,7 @@ for entity1_value in entity1_values:
 print(f"\n{'='*80}")
 print(f"TABLE CREATION SUMMARY")
 print(f"{'='*80}")
-print(f"Total entity1 values processed: {len(entity1_values)}")
+print(f"Total seriesid values processed: {len(seriesid_values)}")
 print(f"Tables created successfully: {len(created_tables)}")
 print(f"Tables failed: {len(failed_tables)}")
 

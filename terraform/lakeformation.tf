@@ -1,5 +1,26 @@
 # Lake Formation Configuration for Multi-Dialect Views Support
 
+# Configure Lake Formation data lake settings
+# This removes default permissions which is required for Lake Formation managed databases
+resource "aws_lakeformation_data_lake_settings" "default" {
+  admins = [data.aws_caller_identity.current.arn]
+  
+  # Remove default create table and create database permissions
+  create_database_default_permissions {
+    permissions = []
+    principal {
+      data_lake_principal_identifier = "IAM_ALLOWED_PRINCIPALS"
+    }
+  }
+  
+  create_table_default_permissions {
+    permissions = []
+    principal {
+      data_lake_principal_identifier = "IAM_ALLOWED_PRINCIPALS"
+    }
+  }
+}
+
 # Register S3 location with Lake Formation
 resource "aws_lakeformation_resource" "iceberg_data_location" {
   arn = "${aws_s3_bucket.iceberg_data_bucket.arn}/${var.iceberg_data_prefix}"
@@ -7,7 +28,10 @@ resource "aws_lakeformation_resource" "iceberg_data_location" {
   # Use service-linked role for Lake Formation
   use_service_linked_role = true
   
-  depends_on = [aws_s3_bucket.iceberg_data_bucket]
+  depends_on = [
+    aws_s3_bucket.iceberg_data_bucket,
+    aws_lakeformation_data_lake_settings.default
+  ]
 }
 
 # Grant Lake Formation permissions to Glue role for data location access

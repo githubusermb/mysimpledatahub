@@ -94,9 +94,9 @@ try:
             # Test 5: Test filtering
             print(f"\n[Test 5] Testing WHERE clause...")
             filter_df = spark.sql(f"""
-                SELECT entity1, entity2, COUNT(*) as count 
+                SELECT seriesid, aod, COUNT(*) as count 
                 FROM glue_catalog.{database_name}.{view_name} 
-                GROUP BY entity1, entity2
+                GROUP BY seriesid, aod
                 LIMIT 5
             """)
             filter_count = filter_df.count()
@@ -107,11 +107,11 @@ try:
             # Test 6: Test column selection
             print(f"\n[Test 6] Testing column selection...")
             # Get first 5 column names (excluding entity columns)
-            test_columns = [f.name for f in schema.fields if not f.name.startswith('entity')][:5]
+            test_columns = [f.name for f in schema.fields if not f.name in ['seriesid', 'aod', 'rssdid', 'submissionts']][:5]
             if test_columns:
                 col_list = ', '.join([f'"{col}"' for col in test_columns])
                 select_df = spark.sql(f"""
-                    SELECT entity1, {col_list}
+                    SELECT seriesid, {col_list}
                     FROM glue_catalog.{database_name}.{view_name}
                     LIMIT 3
                 """)
@@ -123,9 +123,9 @@ try:
             # Test 7: Test JOIN with source table
             print(f"\n[Test 7] Testing JOIN with source table...")
             join_df = spark.sql(f"""
-                SELECT v.entity1, v.entity2, COUNT(*) as view_rows
+                SELECT v.seriesid, v.aod, COUNT(*) as view_rows
                 FROM glue_catalog.{database_name}.{view_name} v
-                GROUP BY v.entity1, v.entity2
+                GROUP BY v.seriesid, v.aod
                 LIMIT 3
             """)
             join_count = join_df.count()

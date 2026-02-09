@@ -1,6 +1,6 @@
 # PowerShell script to verify view format and test in Athena
 param(
-    [string]$ViewName = "entity_view_entity1_set2",
+    [string]$ViewName = "entity_view_FRY9C",
     [string]$DatabaseName = "iceberg_db"
 )
 

@@ -44,28 +44,28 @@ glue_client = boto3.client('glue')
 # Read the source table using the Glue catalog
 source_df = spark.sql(f"SELECT * FROM glue_catalog.{database_name}.{source_table_name}")
 
-# Get distinct entity1 values
-entity1_values = [row.entity1 for row in source_df.select("entity1").distinct().collect()]
-print(f"Found {len(entity1_values)} distinct entity1 values")
+# Get distinct seriesid values
+seriesid_values = [row.seriesid for row in source_df.select("seriesid").distinct().collect()]
+print(f"Found {len(seriesid_values)} distinct seriesid values")
 
-# Create views for each entity1 value
+# Create views for each seriesid value
 created_views = []
 failed_views = []
 
-for entity1_value in entity1_values:
+for seriesid_value in seriesid_values:
     print(f"\n{'='*80}")
-    print(f"Processing entity1 = '{entity1_value}'")
+    print(f"Processing seriesid = '{seriesid_value}'")
     print(f"{'='*80}")
     
-    # Filter data for this entity1 value
-    entity_df = source_df.filter(col("entity1") == entity1_value)
+    # Filter data for this seriesid value
+    entity_df = source_df.filter(col("seriesid") == seriesid_value)
     
-    # Get distinct key values for this specific entity1 value
+    # Get distinct key values for this specific seriesid value
     entity_key_values = [row.key for row in entity_df.select("key").distinct().collect()]
     print(f"Found {len(entity_key_values)} distinct key values")
     
-    # Create view name based on entity1 value
-    view_name = f"{view_prefix}_{entity1_value}"
+    # Create view name based on seriesid value
+    view_name = f"{view_prefix}_{seriesid_value}"
     full_view_name = f"glue_catalog.{database_name}.{view_name}"
     
     # Build the pivot columns for the SQL
@@ -81,17 +81,17 @@ for entity1_value in entity1_values:
     # Use glue_catalog.database.table format for Spark
     view_sql = f"""
     SELECT 
-        entity1,
-        entity2,
-        entity3,
-        entity4,
+        seriesid,
+        aod,
+        rssdid,
+        submissionts,
         {pivot_columns_str}
     FROM 
         glue_catalog.{database_name}.{source_table_name}
     WHERE
-        entity1 = '{entity1_value}'
+        seriesid = '{seriesid_value}'
     GROUP BY 
-        entity1, entity2, entity3, entity4
+        seriesid, aod, rssdid, submissionts
     """
     
     try:
@@ -147,7 +147,7 @@ for entity1_value in entity1_values:
 print(f"\n{'='*80}")
 print(f"VIEW CREATION SUMMARY")
 print(f"{'='*80}")
-print(f"Total entity1 values processed: {len(entity1_values)}")
+print(f"Total seriesid values processed: {len(seriesid_values)}")
 print(f"Views created successfully: {len(created_views)}")
 print(f"Views failed: {len(failed_views)}")
 
