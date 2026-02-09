@@ -8,16 +8,12 @@ resource "aws_lakeformation_data_lake_settings" "default" {
   # Remove default create table and create database permissions
   create_database_default_permissions {
     permissions = []
-    principal {
-      data_lake_principal_identifier = "IAM_ALLOWED_PRINCIPALS"
-    }
+    principal   = "IAM_ALLOWED_PRINCIPALS"
   }
   
   create_table_default_permissions {
     permissions = []
-    principal {
-      data_lake_principal_identifier = "IAM_ALLOWED_PRINCIPALS"
-    }
+    principal   = "IAM_ALLOWED_PRINCIPALS"
   }
 }
 
