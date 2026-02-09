@@ -1,0 +1,9 @@
+create an aws data ingestion pipeline that ingests csv file under ingest_ts=<ts> folder in raw data s3 bucket. csv file should have header entity1,entity2,entity3,entity4, key, value. use same value for entity1 to entity4 columns with distinct key and value data for first 1000 records. Change data for entity4 and value columns for next 1000 records. Repeat the same for next 1000 records for different entity1, key, value. Create glue pyspark job to infer schema from csv file and create iceberg table using inferred schema with data in parquet if it does not exist. Then load data from csv file to iceberg table. Provide terraform code for all infrastructure resources.
+
+
+
+create glue job to create dynamic view for each distinct entity1 value  in entity_data table. All distinct values in key column for the specifci entity1 should be transposed as columns and data for transposed columns should be from value column of entity_data table. View should also include columns - entity1, entity2, entity3, entity4 alongwith transposed columns. Provide an example of this view to verify understanding.
+
+
+
+create a copy of generate_smaple_csv.py that has header seriesid,aod,rssdid,submissionts,key,value. Generate first 1000 records with seriesid as FRY9C,aod as 20230131, rssdid as 1234567, key as each distinct value from comma separated list in mdrm/output_fry9c.txt, value as random integer value. Generate next 1000 records with seriesid as FRY9C,aod as 20231231, rssdid as 2345678, key as each distinct value from comma separated list in mdrm/output_fry9c.txt, value as random integer value. Generate next 1000 records with seriesid as FRY15,aod as 20241231, rssdid as 2345678, key as each distinct value from comma separated list in mdrm/output_fry15.txt, value as random integer value.
