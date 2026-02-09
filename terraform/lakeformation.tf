@@ -3,7 +3,12 @@
 # Configure Lake Formation data lake settings
 # This removes default permissions which is required for Lake Formation managed databases
 resource "aws_lakeformation_data_lake_settings" "default" {
-  admins = [data.aws_caller_identity.current.arn]
+  # Add both the AWS SSO admin role and the current Terraform execution role as Lake Formation admins
+  # This ensures Terraform can grant Lake Formation permissions
+  admins = [
+    "arn:aws:iam::742993817231:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AWSAdministratorAccess_6e81f49c9e3aec36",
+    data.aws_caller_identity.current.arn
+  ]
   
   # Remove default create table and create database permissions
   create_database_default_permissions {
