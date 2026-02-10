@@ -401,7 +401,7 @@ resource "aws_s3_object" "lambda_package" {
 
 # Lambda permission to allow S3 to invoke function
 resource "aws_lambda_permission" "allow_bucket" {
-  statement_id  = "AllowExecutionFromS3Bucket"
+  statement_id  = "AllowExecutionFromS3Bucket-v2"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.trigger_glue_job.function_name
   principal     = "s3.amazonaws.com"
