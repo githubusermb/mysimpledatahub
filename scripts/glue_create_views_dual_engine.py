@@ -208,11 +208,7 @@ for seriesid_value in seriesid_values:
         # Step 4: Add Athena dialect using ALTER VIEW ADD DIALECT
         print(f"\n[Step 3/3] Adding Athena dialect via ALTER VIEW ADD DIALECT...")
         
-        alter_view_sql = f"""
-        ALTER VIEW {database_name}.{view_name}
-        ADD DIALECT ATHENA AS
-        {athena_view_sql}
-        """
+        alter_view_sql = f"""ALTER VIEW {database_name}.{view_name} ADD DIALECT AS {athena_view_sql}"""
         
         if execute_athena_query(alter_view_sql, f"Adding Athena dialect to {view_name}"):
             print(f"✓ Athena dialect added successfully")

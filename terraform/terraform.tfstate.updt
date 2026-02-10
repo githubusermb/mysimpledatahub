@@ -1,7 +1,7 @@
 {
   "version": 4,
   "terraform_version": "1.14.0",
-  "serial": 64,
+  "serial": 88,
   "lineage": "8e748ce1-5e35-ad73-c673-f1d715f352f7",
   "outputs": {
     "athena_users_with_permissions": {
@@ -1726,7 +1726,7 @@
             "content_encoding": "",
             "content_language": "",
             "content_type": "application/octet-stream",
-            "etag": "29789d00506394eb5558427b6f5cc202",
+            "etag": "ca4a424dcb119e077058eb4a99bbb0bd",
             "force_destroy": false,
             "id": "iceberg-data-storage-bucket/scripts/glue_create_views_dual_engine.py",
             "key": "scripts/glue_create_views_dual_engine.py",
@@ -1743,7 +1743,7 @@
             "storage_class": "STANDARD",
             "tags": {},
             "tags_all": {},
-            "version_id": "06ZQkOuM_T5WufFN_mFrfQl6umD3bCXJ",
+            "version_id": "QjHlBeUeBNqo0vtS6xcAzMw6WKYbyL6W",
             "website_redirect": ""
           },
           "sensitive_attributes": [],
