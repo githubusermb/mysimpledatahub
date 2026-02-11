@@ -7,7 +7,7 @@ Lake Formation managed tables in Athena.
 Usage:
   python grant_athena_user_permissions.py \
     --database iceberg_db \
-    --table entity_data \
+    --table collections_data_staging \
     --principal arn:aws:iam::123456789012:user/your-user \
     --region us-east-1
 """
@@ -143,12 +143,12 @@ Examples:
   # Grant permissions to current user
   python grant_athena_user_permissions.py \\
     --database iceberg_db \\
-    --table entity_data
+    --table collections_data_staging
 
   # Grant permissions to specific user
   python grant_athena_user_permissions.py \\
     --database iceberg_db \\
-    --table entity_data \\
+    --table collections_data_staging \\
     --principal arn:aws:iam::123456789012:user/john.doe
 
   # Grant permissions on all tables
@@ -158,8 +158,8 @@ Examples:
     --principal arn:aws:iam::123456789012:role/AthenaUserRole
 
   # Grant permissions to multiple users (run multiple times)
-  python grant_athena_user_permissions.py --database iceberg_db --table entity_data --principal arn:aws:iam::123456789012:user/user1
-  python grant_athena_user_permissions.py --database iceberg_db --table entity_data --principal arn:aws:iam::123456789012:user/user2
+  python grant_athena_user_permissions.py --database iceberg_db --table collections_data_staging --principal arn:aws:iam::123456789012:user/user1
+  python grant_athena_user_permissions.py --database iceberg_db --table collections_data_staging --principal arn:aws:iam::123456789012:user/user2
         """
     )
     

@@ -47,7 +47,7 @@ job.init(args['JOB_NAME'], args)
 raw_data_bucket = args['raw_data_bucket']
 raw_data_prefix = args['raw_data_prefix']
 database_name = args['database_name']
-table_name = args['table_name']
+table_name = args['table_name']  # Should be 'collections_data_staging'
 iceberg_data_bucket = args['iceberg_data_bucket']
 iceberg_data_prefix = args['iceberg_data_prefix']
 catalog_id = args['catalog_id']
@@ -327,14 +327,43 @@ valid_files = validate_and_read_s3_files(input_path)
 if not valid_files:
     raise Exception(f"No valid CSV files found in {input_path}. Aborting job.")
 
+# Extract ingest_timestamp from the first valid file path
+ingest_ts = "unknown"
+try:
+    # Extract timestamp from path like "s3://bucket/raw-data/ingest_ts=1234567890/file.csv"
+    first_file_path = valid_files[0]
+    print(f"Extracting ingest_ts from file path: {first_file_path}")
+    
+    path_parts = first_file_path.split("/")
+    for part in path_parts:
+        if part.startswith("ingest_ts="):
+            ingest_ts = part.split("=")[1]
+            print(f"✓ Extracted ingest_ts from path: {ingest_ts}")
+            break
+    
+    if ingest_ts == "unknown":
+        print(f"WARNING: Could not extract ingest_ts from path: {first_file_path}")
+        print(f"Path parts: {path_parts}")
+except Exception as e:
+    print(f"Error extracting timestamp from path: {str(e)}")
+
 # Create DataFrame from validated files
 try:
     print("Creating DataFrame from validated files...")
     csv_df = create_dataframe_from_validated_files(spark, valid_files)
     
+    # Add ingest_timestamp column BEFORE any other operations
+    print(f"Adding ingest_timestamp column with value: {ingest_ts}")
+    csv_df = csv_df.withColumn("ingest_timestamp", lit(ingest_ts))
+    
     # Print inferred schema
     print("Inferred schema:")
     csv_df.printSchema()
+    
+    # Show sample data with ingest_timestamp
+    print("Sample data with ingest_timestamp:")
+    csv_df.select("ingest_timestamp").show(5, truncate=False)
+    
 except Exception as e:
     print(f"Error creating DataFrame: {str(e)}")
     raise
@@ -353,24 +382,7 @@ except Exception as e:
 # Create table if it doesn't exist
 if not table_exists:
     print(f"Creating Iceberg table: {database_name}.{table_name}")
-    
-    # Extract timestamp from the input path (ingest_ts=<ts>)
-    ingest_ts = "unknown"
-    try:
-        # Extract timestamp from path like "ingest_ts=1234567890"
-        path_parts = input_path.split("/")
-        for part in path_parts:
-            if part.startswith("ingest_ts="):
-                ingest_ts = part.split("=")[1]
-                print(f"Extracted ingest_ts from path: {ingest_ts}")
-                break
-        if ingest_ts == "unknown":
-            print(f"WARNING: Could not extract ingest_ts from path: {input_path}")
-    except Exception as e:
-        print(f"Error extracting timestamp from path: {str(e)}")
-    
-    # Add ingest_timestamp column with the extracted timestamp
-    csv_df = csv_df.withColumn("ingest_timestamp", lit(ingest_ts))
+    print(f"Using ingest_timestamp value: {ingest_ts}")
     
     # Register the DataFrame as a temporary view
     csv_df.createOrReplaceTempView("csv_df")
@@ -441,24 +453,7 @@ if not table_exists:
 else:
     # If table exists, insert data into it
     print(f"Inserting data into existing table: {database_name}.{table_name}")
-    
-    # Extract timestamp from the input path (ingest_ts=<ts>)
-    ingest_ts = "unknown"
-    try:
-        # Extract timestamp from path like "ingest_ts=1234567890"
-        path_parts = input_path.split("/")
-        for part in path_parts:
-            if part.startswith("ingest_ts="):
-                ingest_ts = part.split("=")[1]
-                print(f"Extracted ingest_ts from path: {ingest_ts}")
-                break
-        if ingest_ts == "unknown":
-            print(f"WARNING: Could not extract ingest_ts from path: {input_path}")
-    except Exception as e:
-        print(f"Error extracting timestamp from path: {str(e)}")
-    
-    # Add ingest_timestamp column with the extracted timestamp
-    csv_df = csv_df.withColumn("ingest_timestamp", lit(ingest_ts))
+    print(f"Using ingest_timestamp value: {ingest_ts}")
     
     # Register the DataFrame as a temporary view
     csv_df.createOrReplaceTempView("csv_df")

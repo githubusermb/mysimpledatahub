@@ -42,7 +42,7 @@ variable "glue_database_name" {
 variable "glue_table_name" {
   description = "Name of the AWS Glue table"
   type        = string
-  default     = "entity_data"
+  default     = "collections_data_staging"
 }
 
 # Athena User Permissions

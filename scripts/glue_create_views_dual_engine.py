@@ -27,22 +27,22 @@ spark = glueContext.spark_session
 
 job = Job(glueContext)
 
-# Get job parameters
-args = getResolvedOptions(sys.argv, [
+# Get job parameters - view_prefix is optional
+required_args = [
     'JOB_NAME',
     'database_name',
     'source_table_name',
-    'view_prefix',
     'athena_output_location'
-])
+]
+
+args = getResolvedOptions(sys.argv, required_args)
 
 database_name = args['database_name']
-source_table_name = args['source_table_name']
-view_prefix = args['view_prefix']
+source_table_name = args['source_table_name']  # Should be 'collections_data_staging'
 athena_output_location = args['athena_output_location']
 
 print(f"Creating dual-engine views for {database_name}.{source_table_name}")
-print(f"View prefix: {view_prefix}")
+print(f"View naming pattern: <seriesid>_report_view")
 print(f"Athena output location: {athena_output_location}")
 
 # Initialize clients
@@ -124,8 +124,8 @@ for seriesid_value in seriesid_values:
     entity_key_values = [row.key for row in entity_df.select("key").distinct().collect()]
     print(f"Found {len(entity_key_values)} distinct key values")
     
-    # Create view name based on seriesid value
-    view_name = f"{view_prefix}_{seriesid_value}"
+    # Create view name based on seriesid value: <seriesid>_report_view
+    view_name = f"{seriesid_value}_report_view"
     full_view_name = f"{database_name}.{view_name}"
     
     # Build the pivot columns for Spark SQL (using backticks)
@@ -267,9 +267,9 @@ print(f"USAGE")
 print(f"{'='*80}")
 print(f"\nThese views work in BOTH engines:")
 print(f"\n  Athena:")
-print(f"    SELECT * FROM {database_name}.<view_name>")
+print(f"    SELECT * FROM {database_name}.<seriesid>_report_view")
 print(f"\n  Glue Spark:")
-print(f"    spark.sql('SELECT * FROM glue_catalog.{database_name}.<view_name>')")
+print(f"    spark.sql('SELECT * FROM glue_catalog.{database_name}.<seriesid>_report_view')")
 
 print(f"\n{'='*80}")
 print(f"HOW IT WORKS")
@@ -277,7 +277,7 @@ print(f"{'='*80}")
 print(f"1. CREATE PROTECTED MULTI DIALECT VIEW (Spark SQL)")
 print(f"   - Creates view in Glue Data Catalog")
 print(f"   - Works in Glue Spark immediately")
-print(f"\n2. ALTER VIEW ADD DIALECT ATHENA (Athena API)")
+print(f"\n2. ALTER VIEW ADD DIALECT (Athena API)")
 print(f"   - Adds Athena-specific SQL dialect")
 print(f"   - Makes view work in Athena")
 print(f"\n3. Result: Single view works in both engines!")

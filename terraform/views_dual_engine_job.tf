@@ -22,7 +22,6 @@ resource "aws_glue_job" "views_dual_engine_job" {
     "--job-language"         = "python"
     "--database_name"        = aws_glue_catalog_database.iceberg_database.name
     "--source_table_name"    = var.glue_table_name
-    "--view_prefix"          = "entity_view"
     "--athena_output_location" = "s3://${aws_s3_bucket.iceberg_data_bucket.id}/athena-results/"
     "--enable-metrics"       = ""
     "--enable-continuous-cloudwatch-log" = "true"

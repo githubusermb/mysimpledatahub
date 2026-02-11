@@ -7,7 +7,7 @@ Usage:
     --bucket iceberg-data-storage-bucket \
     --prefix iceberg-data \
     --database iceberg_db \
-    --table entity_data \
+    --table collections_data_staging \
     --role-arn arn:aws:iam::123456789012:role/GlueJobRole \
     --region us-east-1
 """
@@ -224,7 +224,7 @@ Example:
     --bucket iceberg-data-storage-bucket \\
     --prefix iceberg-data \\
     --database iceberg_db \\
-    --table entity_data \\
+    --table collections_data_staging \\
     --role-arn arn:aws:iam::123456789012:role/GlueJobRole \\
     --region us-east-1
 
