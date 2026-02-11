@@ -355,7 +355,6 @@ if not table_exists:
     print(f"Creating Iceberg table: {database_name}.{table_name}")
     
     # Extract timestamp from the input path (ingest_ts=<ts>)
-    # This is a simple extraction and might need to be adjusted based on your actual path structure
     ingest_ts = "unknown"
     try:
         # Extract timestamp from path like "ingest_ts=1234567890"
@@ -363,22 +362,24 @@ if not table_exists:
         for part in path_parts:
             if part.startswith("ingest_ts="):
                 ingest_ts = part.split("=")[1]
+                print(f"Extracted ingest_ts from path: {ingest_ts}")
                 break
+        if ingest_ts == "unknown":
+            print(f"WARNING: Could not extract ingest_ts from path: {input_path}")
     except Exception as e:
         print(f"Error extracting timestamp from path: {str(e)}")
     
-    # Add ingest_timestamp column
+    # Add ingest_timestamp column with the extracted timestamp
     csv_df = csv_df.withColumn("ingest_timestamp", lit(ingest_ts))
     
     # Register the DataFrame as a temporary view
     csv_df.createOrReplaceTempView("csv_df")
     
-    # Create the Iceberg table
-    # Note: We're not specifying partition columns here as they depend on the actual CSV schema
-    # You should modify the PARTITIONED BY clause based on your actual data
+    # Create the Iceberg table with partitioning by seriesid and ingest_timestamp
     create_table_sql = f"""
     CREATE TABLE glue_catalog.{database_name}.{table_name} 
     USING iceberg
+    PARTITIONED BY (seriesid, ingest_timestamp)
     TBLPROPERTIES (
         'format-version'='2',
         'table_type'='ICEBERG',
@@ -449,11 +450,14 @@ else:
         for part in path_parts:
             if part.startswith("ingest_ts="):
                 ingest_ts = part.split("=")[1]
+                print(f"Extracted ingest_ts from path: {ingest_ts}")
                 break
+        if ingest_ts == "unknown":
+            print(f"WARNING: Could not extract ingest_ts from path: {input_path}")
     except Exception as e:
         print(f"Error extracting timestamp from path: {str(e)}")
     
-    # Add ingest_timestamp column
+    # Add ingest_timestamp column with the extracted timestamp
     csv_df = csv_df.withColumn("ingest_timestamp", lit(ingest_ts))
     
     # Register the DataFrame as a temporary view
