@@ -7,3 +7,10 @@ create glue job to create dynamic view for each distinct entity1 value  in entit
 
 
 create a copy of generate_smaple_csv.py that has header seriesid,aod,rssdid,submissionts,key,value. Generate first 1000 records with seriesid as FRY9C,aod as 20230131, rssdid as 1234567, key as each distinct value from comma separated list in mdrm/output_fry9c.txt, value as random integer value. Generate next 1000 records with seriesid as FRY9C,aod as 20231231, rssdid as 2345678, key as each distinct value from comma separated list in mdrm/output_fry9c.txt, value as random integer value. Generate next 1000 records with seriesid as FRY15,aod as 20241231, rssdid as 2345678, key as each distinct value from comma separated list in mdrm/output_fry15.txt, value as random integer value.
+
+
+
+aws s3 cp your-data.csv s3://your-bucket/collections-data/
+
+
+aws s3 cp "data/ingest_ts=1770609249/" "s3://sdh-raw-data-ingestion-bucket/collections-data/ingest_ts=1770609249/" --recursive

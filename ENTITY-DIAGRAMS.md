@@ -192,7 +192,7 @@ Examples:
 
 #### Spark SQL Dialect (Default)
 ```sql
-CREATE PROTECTED MULTI DIALECT VIEW glue_catalog.iceberg_db.fry9c_report_view
+CREATE PROTECTED MULTI DIALECT VIEW glue_catalog.collections_db.fry9c_report_view
 SECURITY DEFINER
 AS
 SELECT 
@@ -205,7 +205,7 @@ SELECT
     MAX(CASE WHEN key = 'RCON2200' THEN value ELSE NULL END) AS `RCON2200`
     -- ... additional columns for each distinct key
 FROM 
-    glue_catalog.iceberg_db.collections_data_staging
+    glue_catalog.collections_db.collections_data_staging
 WHERE
     seriesid = 'fry9c'
 GROUP BY 
@@ -214,7 +214,7 @@ GROUP BY
 
 #### Athena Dialect (Added via ALTER VIEW)
 ```sql
-ALTER VIEW iceberg_db.fry9c_report_view ADD DIALECT AS
+ALTER VIEW collections_db.fry9c_report_view ADD DIALECT AS
 SELECT 
     seriesid,
     aod,
@@ -225,7 +225,7 @@ SELECT
     MAX(CASE WHEN key = 'RCON2200' THEN value ELSE NULL END) AS "RCON2200"
     -- ... additional columns for each distinct key
 FROM 
-    iceberg_db.collections_data_staging
+    collections_db.collections_data_staging
 WHERE
     seriesid = 'fry9c'
 GROUP BY 
@@ -462,7 +462,7 @@ collections_data_staging Row (N:1) → View Row
 Source → Staging → Production → Consumption
 
 CSV File
-  └─> S3 Raw Data Bucket (raw-data/ingest_ts=<ts>/)
+  └─> S3 Raw Data Bucket (collections-data/ingest_ts=<ts>/)
       └─> Glue Job: csv-to-iceberg-ingestion
           └─> collections_data_staging Table (iceberg-data/collections_data_staging/)
               └─> Glue Job: create-views-dual-engine
@@ -479,14 +479,14 @@ CSV File
 
 ```sql
 -- Athena
-SELECT * FROM iceberg_db.collections_data_staging 
+SELECT * FROM collections_db.collections_data_staging 
 WHERE seriesid = 'fry9c' 
   AND ingest_timestamp = '1770609249'
 LIMIT 10;
 
 -- Glue Spark
 spark.sql("""
-    SELECT * FROM glue_catalog.iceberg_db.collections_data_staging 
+    SELECT * FROM glue_catalog.collections_db.collections_data_staging 
     WHERE seriesid = 'fry9c' 
       AND ingest_timestamp = '1770609249'
     LIMIT 10
@@ -497,13 +497,13 @@ spark.sql("""
 
 ```sql
 -- Athena
-SELECT * FROM iceberg_db.fry9c_report_view
+SELECT * FROM collections_db.fry9c_report_view
 WHERE aod = '2024-03-31'
 LIMIT 10;
 
 -- Glue Spark
 spark.sql("""
-    SELECT * FROM glue_catalog.iceberg_db.fry9c_report_view
+    SELECT * FROM glue_catalog.collections_db.fry9c_report_view
     WHERE aod = '2024-03-31'
     LIMIT 10
 """).show()
@@ -519,8 +519,8 @@ SELECT
     f9.rssdid,
     f9.RCON2170 AS fry9c_value,
     f15.RCON3210 AS fry15_value
-FROM iceberg_db.fry9c_report_view f9
-LEFT JOIN iceberg_db.fry15_report_view f15
+FROM collections_db.fry9c_report_view f9
+LEFT JOIN collections_db.fry15_report_view f15
   ON f9.rssdid = f15.rssdid
   AND f9.aod = f15.aod
 WHERE f9.aod = '2024-03-31';

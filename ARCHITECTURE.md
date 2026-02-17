@@ -19,7 +19,7 @@
 │           ▼                                                                   │
 │  ┌─────────────────────────────────────────────────────────────────┐        │
 │  │  S3 Raw Data Bucket                                              │        │
-│  │  └── raw-data/                                                   │        │
+│  │  └── collections-data/                                           │        │
 │  │      └── ingest_ts=<timestamp>/                                  │        │
 │  │          └── mdrm_data_<timestamp>.csv                           │        │
 │  │                                                                   │        │
@@ -172,7 +172,7 @@
 
 ```
 1. CSV Upload
-   └─> S3 Raw Data Bucket (raw-data/ingest_ts=<timestamp>/)
+   └─> S3 Raw Data Bucket (collections-data/ingest_ts=<timestamp>/)
 
 2. Ingestion Trigger
    └─> Lambda (optional) OR Manual trigger
@@ -208,7 +208,7 @@
 
 | Bucket | Purpose | Contents |
 |--------|---------|----------|
-| **raw-data-bucket** | Source CSV files | `raw-data/ingest_ts=<timestamp>/mdrm_data_<timestamp>.csv` |
+| **raw-data-bucket** | Source CSV files | `collections-data/ingest_ts=<timestamp>/mdrm_data_<timestamp>.csv` |
 | **iceberg-data-bucket** | Iceberg table storage | `iceberg-data/collections_data_staging/` with metadata and data folders |
 | **athena-results** | Query results | Athena query outputs |
 

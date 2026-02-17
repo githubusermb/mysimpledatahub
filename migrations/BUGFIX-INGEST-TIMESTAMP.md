@@ -6,12 +6,12 @@ After running the `glue_csv_to_iceberg` job, the `ingest_timestamp` column was s
 
 ## Root Cause
 
-The script was trying to extract `ingest_ts` from the base `input_path` variable (e.g., `s3://bucket/raw-data/`), which doesn't contain the `ingest_ts=<timestamp>` folder structure. The actual folder structure is only present in the individual file paths returned by `validate_and_read_s3_files()`.
+The script was trying to extract `ingest_ts` from the base `input_path` variable (e.g., `s3://bucket/collections-data/`), which doesn't contain the `ingest_ts=<timestamp>` folder structure. The actual folder structure is only present in the individual file paths returned by `validate_and_read_s3_files()`.
 
 ### Original Logic (Incorrect)
 ```python
 # This was using the base path without ingest_ts folder
-input_path = f"s3://{raw_data_bucket}/{raw_data_prefix}"  # e.g., s3://bucket/raw-data/
+input_path = f"s3://{raw_data_bucket}/{raw_data_prefix}"  # e.g., s3://bucket/collections-data/
 
 # Later trying to extract from base path (fails)
 path_parts = input_path.split("/")  # Doesn't contain ingest_ts=
@@ -28,7 +28,7 @@ The fix extracts the `ingest_ts` value from the actual file paths (which include
 ```python
 # Get validated file paths (includes full path with ingest_ts folder)
 valid_files = validate_and_read_s3_files(input_path)
-# e.g., ['s3://bucket/raw-data/ingest_ts=1770609249/file.csv']
+# e.g., ['s3://bucket/collections-data/ingest_ts=1770609249/file.csv']
 
 # Extract from actual file path
 first_file_path = valid_files[0]
@@ -93,10 +93,10 @@ csv_df.select("ingest_timestamp").show(5, truncate=False)
 The script expects CSV files to be organized with the following structure:
 
 ```
-s3://bucket-name/raw-data/ingest_ts=<timestamp>/file.csv
+s3://bucket-name/collections-data/ingest_ts=<timestamp>/file.csv
 
 Example:
-s3://mb-raw-data-ingestion-bucket/raw-data/ingest_ts=1770609249/mdrm_data_1770609249.csv
+s3://sdh-collections-data-ingestion-bucket/collections-data/ingest_ts=1770609249/mdrm_data_1770609249.csv
 ```
 
 ## Verification
@@ -106,7 +106,7 @@ After deploying the fix, verify the `ingest_timestamp` is correctly populated:
 ### 1. Check Glue Job Logs
 Look for these log messages:
 ```
-Extracting ingest_ts from file path: s3://bucket/raw-data/ingest_ts=1770609249/file.csv
+Extracting ingest_ts from file path: s3://bucket/collections-data/ingest_ts=1770609249/file.csv
 ✓ Extracted ingest_ts from path: 1770609249
 Adding ingest_timestamp column with value: 1770609249
 Sample data with ingest_timestamp:
