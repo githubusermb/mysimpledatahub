@@ -2,8 +2,8 @@
 resource "aws_s3_object" "glue_views_dual_engine_script" {
   bucket = aws_s3_bucket.iceberg_data_bucket.id
   key    = "scripts/glue_create_views_dual_engine.py"
-  source = "../scripts/glue_create_views_dual_engine.py"
-  etag   = filemd5("../scripts/glue_create_views_dual_engine.py")
+  source = "../jobs/glue_create_views_dual_engine.py"
+  etag   = filemd5("../jobs/glue_create_views_dual_engine.py")
 }
 
 # AWS Glue Job for creating dual-engine views
@@ -20,9 +20,10 @@ resource "aws_glue_job" "views_dual_engine_job" {
   
   default_arguments = {
     "--job-language"         = "python"
-    "--database_name"        = aws_glue_catalog_database.iceberg_database.name
+    "--database_name"        = aws_glue_catalog_database.collections_database.name
     "--source_table_name"    = var.glue_table_name
     "--athena_output_location" = "s3://${aws_s3_bucket.iceberg_data_bucket.id}/athena-results/"
+    "--aws_region"           = var.aws_region
     "--enable-metrics"       = ""
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-spark-ui"      = "true"

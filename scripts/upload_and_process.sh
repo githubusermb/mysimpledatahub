@@ -8,7 +8,7 @@ set -e
 OUTPUT_DIR="/tmp/data"
 TIMESTAMP=$(date +%s)
 RAW_BUCKET=""
-RAW_PREFIX="raw-data/"
+RAW_PREFIX="collections-data/"
 GLUE_JOB=""
 
 # Parse command line arguments

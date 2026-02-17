@@ -1,21 +1,21 @@
+"""
+Test Report Views in Spark
+Tests all report views created by the dual-engine views job
+
+This script:
+1. Lists all report views in the database
+2. Tests each view with comprehensive queries
+3. Verifies row counts, schema, and data integrity
+4. Generates a detailed test report
+"""
+
 import sys
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
-from pyspark.sql import SparkSession
-import boto3
-
-# Initialize Spark and Glue contexts
-sc = SparkContext()
-glueContext = GlueContext(sc)
-spark = glueContext.spark_session
-
-job = Job(glueContext)
-
-# Get job parameters
-args = getResolvedOptions(sys.argv, [
+from pyspark.sql import SparkSessv, [
     'JOB_NAME',
     'database_name',
     'view_prefix'

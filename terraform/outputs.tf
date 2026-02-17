@@ -14,7 +14,7 @@ output "iceberg_data_bucket_name" {
 # Output the Glue database and table names
 output "glue_database_name" {
   description = "Name of the AWS Glue database"
-  value       = aws_glue_catalog_database.iceberg_database.name
+  value       = aws_glue_catalog_database.collections_database.name
 }
 
 output "glue_table_name" {
@@ -49,7 +49,7 @@ output "example_run_glue_job_command" {
 # Output example Athena query to view data
 output "example_athena_query" {
   description = "Example Athena query to view data"
-  value       = "SELECT * FROM ${aws_glue_catalog_database.iceberg_database.name}.${var.glue_table_name} LIMIT 10;"
+  value       = "SELECT * FROM ${aws_glue_catalog_database.collections_database.name}.${var.glue_table_name} LIMIT 10;"
 }
 
 # Lake Formation outputs
@@ -65,7 +65,7 @@ output "glue_role_arn" {
 
 output "lakeformation_setup_command" {
   description = "Command to run Lake Formation setup for existing tables"
-  value       = "python scripts/setup_lakeformation_complete.py --bucket ${aws_s3_bucket.iceberg_data_bucket.id} --prefix ${var.iceberg_data_prefix} --database ${aws_glue_catalog_database.iceberg_database.name} --table ${var.glue_table_name} --role-arn ${aws_iam_role.glue_service_role.arn} --region ${var.aws_region}"
+  value       = "python scripts/setup_lakeformation_complete.py --bucket ${aws_s3_bucket.iceberg_data_bucket.id} --prefix ${var.iceberg_data_prefix} --database ${aws_glue_catalog_database.collections_database.name} --table ${var.glue_table_name} --role-arn ${aws_iam_role.glue_service_role.arn} --region ${var.aws_region}"
 }
 
 output "dynamic_views_job_name" {
@@ -85,6 +85,6 @@ output "athena_users_with_permissions" {
 
 output "grant_athena_permissions_command" {
   description = "Command to grant Athena permissions to additional users"
-  value       = "python scripts/grant_athena_user_permissions.py --database ${aws_glue_catalog_database.iceberg_database.name} --table ${var.glue_table_name} --principal <user-arn>"
+  value       = "python scripts/grant_athena_user_permissions.py --database ${aws_glue_catalog_database.collections_database.name} --table ${var.glue_table_name} --principal <user-arn>"
 }
 

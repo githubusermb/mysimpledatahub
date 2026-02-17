@@ -38,9 +38,9 @@ Edit `terraform/terraform.tfvars`:
 ```hcl
 aws_region          = "us-east-1"
 s3_bucket_name      = "your-unique-bucket-name"  # Change this!
-glue_database_name  = "iceberg_db"
+glue_database_name  = "collections_db"
 glue_table_name     = "entity_data"
-csv_data_prefix     = "raw-data/"
+csv_data_prefix     = "collections-data/"
 iceberg_data_prefix = "iceberg-data/"
 ```
 
@@ -57,7 +57,7 @@ terraform apply
 Your CSV must have these columns: entity1,entity2,entity3,entity4,key,value
 
 ```bash
-aws s3 cp your-data.csv s3://your-bucket/raw-data/
+aws s3 cp your-data.csv s3://your-bucket/collections-data/
 ```
 
 ### 4. Run Data Ingestion
@@ -78,28 +78,28 @@ aws glue start-job-run --job-name create-views-dual-engine
 
 ```sql
 -- Query the table
-SELECT * FROM iceberg_db.entity_data LIMIT 10;
+SELECT * FROM collections_db.entity_data LIMIT 10;
 
 -- Query a view
-SELECT * FROM iceberg_db.entity_view_entity1_set1 LIMIT 10;
+SELECT * FROM collections_db.entity_view_entity1_set1 LIMIT 10;
 ```
 
 ### In Glue Spark
 
 ```python
 # Query the table
-df = spark.sql("SELECT * FROM glue_catalog.iceberg_db.entity_data LIMIT 10")
+df = spark.sql("SELECT * FROM glue_catalog.collections_db.entity_data LIMIT 10")
 df.show()
 
 # Query a view
-view_df = spark.sql("SELECT * FROM glue_catalog.iceberg_db.entity_view_entity1_set1 LIMIT 10")
+view_df = spark.sql("SELECT * FROM glue_catalog.collections_db.entity_view_entity1_set1 LIMIT 10")
 view_df.show()
 ```
 
 ## What Gets Created
 
 -  S3 bucket for data storage
--  Glue database: iceberg_db
+-  Glue database: collections_db
 -  Iceberg table: entity_data
 -  Dynamic views: entity_view_* (one per entity1 value)
 - ✅ IAM roles and Lake Formation permissions

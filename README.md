@@ -132,9 +132,9 @@ vi terraform.tfvars
 ```hcl
 aws_region          = "us-east-1"
 s3_bucket_name      = "your-unique-bucket-name"
-glue_database_name  = "iceberg_db"
+glue_database_name  = "collections_db"
 glue_table_name     = "entity_data"
-csv_data_prefix     = "raw-data/"
+csv_data_prefix     = "collections-data/"
 iceberg_data_prefix = "iceberg-data/"
 ```
 
@@ -162,10 +162,10 @@ This creates:
 
 ```bash
 # Upload your CSV files
-aws s3 cp your-data.csv s3://your-bucket/raw-data/
+aws s3 cp your-data.csv s3://your-bucket/collections-data/
 
 # Or upload entire directory
-aws s3 sync ./local-data/ s3://your-bucket/raw-data/
+aws s3 sync ./local-data/ s3://your-bucket/collections-data/
 ```
 
 **CSV Requirements:**
@@ -274,7 +274,7 @@ aws_region = "us-east-1"
 
 # S3 Configuration
 s3_bucket_name      = "my-data-lake-bucket-12345"  # Must be globally unique
-csv_data_prefix     = "raw-data/"
+csv_data_prefix     = "collections-data/"
 iceberg_data_prefix = "iceberg-data/"
 
 # Glue Configuration
@@ -365,7 +365,7 @@ entity1_set2,value2_2,value3_2,value4_2,key_set2_1006,value_1006
 
 **Upload to S3:**
 ```bash
-aws s3 cp data.csv s3://your-bucket/raw-data/
+aws s3 cp data.csv s3://your-bucket/collections-data/
 ```
 
 ### Step 6: Run Data Ingestion
@@ -389,7 +389,7 @@ aws logs tail /aws-glue/jobs/output --follow
 
 **Expected output:**
 ```
-Reading CSV files from s3://bucket/raw-data/
+Reading CSV files from s3://bucket/collections-data/
 Found 1000 rows
 Writing to Iceberg table: glue_catalog.iceberg_db.entity_data
 ✓ Successfully wrote 1000 rows
@@ -550,7 +550,7 @@ view_df.show()
 
 ```bash
 # Upload new CSV files
-aws s3 cp new-data.csv s3://your-bucket/raw-data/
+aws s3 cp new-data.csv s3://your-bucket/collections-data/
 
 # Re-run ingestion (appends data)
 aws glue start-job-run --job-name csv-to-iceberg-ingestion

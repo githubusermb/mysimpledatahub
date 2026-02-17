@@ -55,10 +55,10 @@ resource "aws_lakeformation_permissions" "glue_database_permissions" {
   
   database {
     catalog_id = data.aws_caller_identity.current.account_id
-    name       = aws_glue_catalog_database.iceberg_database.name
+    name       = aws_glue_catalog_database.collections_database.name
   }
   
-  depends_on = [aws_glue_catalog_database.iceberg_database]
+  depends_on = [aws_glue_catalog_database.collections_database]
 }
 
 # Grant Lake Formation permissions to Glue role for table access
@@ -69,11 +69,11 @@ resource "aws_lakeformation_permissions" "glue_table_permissions" {
   
   table {
     catalog_id    = data.aws_caller_identity.current.account_id
-    database_name = aws_glue_catalog_database.iceberg_database.name
+    database_name = aws_glue_catalog_database.collections_database.name
     wildcard      = true
   }
   
-  depends_on = [aws_glue_catalog_database.iceberg_database]
+  depends_on = [aws_glue_catalog_database.collections_database]
 }
 
 # Optional: Make the current user/role a Lake Formation admin
@@ -96,10 +96,10 @@ resource "aws_lakeformation_permissions" "athena_database_permissions" {
   
   database {
     catalog_id = data.aws_caller_identity.current.account_id
-    name       = aws_glue_catalog_database.iceberg_database.name
+    name       = aws_glue_catalog_database.collections_database.name
   }
   
-  depends_on = [aws_glue_catalog_database.iceberg_database]
+  depends_on = [aws_glue_catalog_database.collections_database]
 }
 
 # Grant table SELECT and DESCRIBE permissions to Athena users (all tables)
@@ -111,11 +111,11 @@ resource "aws_lakeformation_permissions" "athena_all_tables_permissions" {
   
   table {
     catalog_id    = data.aws_caller_identity.current.account_id
-    database_name = aws_glue_catalog_database.iceberg_database.name
+    database_name = aws_glue_catalog_database.collections_database.name
     wildcard      = true
   }
   
-  depends_on = [aws_glue_catalog_database.iceberg_database]
+  depends_on = [aws_glue_catalog_database.collections_database]
 }
 
 # Grant table SELECT and DESCRIBE permissions to Athena users (specific table)
@@ -127,9 +127,9 @@ resource "aws_lakeformation_permissions" "athena_specific_table_permissions" {
   
   table {
     catalog_id    = data.aws_caller_identity.current.account_id
-    database_name = aws_glue_catalog_database.iceberg_database.name
+    database_name = aws_glue_catalog_database.collections_database.name
     name          = var.glue_table_name
   }
   
-  depends_on = [aws_glue_catalog_database.iceberg_database]
+  depends_on = [aws_glue_catalog_database.collections_database]
 }

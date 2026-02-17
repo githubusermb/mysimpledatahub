@@ -3,15 +3,15 @@
 aws_region = "us-east-1"
 
 # S3 Bucket Names - Make sure these are globally unique
-raw_data_bucket_name = "mb-raw-data-ingestion-bucket"
-iceberg_data_bucket_name = "iceberg-data-storage-bucket"
+raw_data_bucket_name = "sdh-raw-data-ingestion-bucket"
+iceberg_data_bucket_name = "sdh-staging-data-storage-bucket"
 
 # S3 Prefixes
-raw_data_prefix = "raw-data/"
+raw_data_prefix = "collections-data/"
 iceberg_data_prefix = "iceberg-data/"
 
 # Glue Database and Table Names
-glue_database_name = "iceberg_db"
+glue_database_name = "collections_db"
 glue_table_name = "collections_data_staging"
 
 

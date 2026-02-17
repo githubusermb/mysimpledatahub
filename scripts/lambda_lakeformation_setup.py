@@ -15,7 +15,7 @@ Example Event:
 {
   "bucket": "iceberg-data-storage-bucket",
   "prefix": "iceberg-data",
-  "database": "iceberg_db",
+  "database": "collections_db",
   "table": "collections_data_staging",
   "role_arn": "arn:aws:iam::123456789012:role/GlueServiceRole",
   "region": "us-east-1"
@@ -299,7 +299,7 @@ if __name__ == '__main__':
     test_event = {
         'bucket': 'iceberg-data-storage-bucket',
         'prefix': 'iceberg-data',
-        'database': 'iceberg_db',
+        'database': 'collections_db',
         'table': 'collections_data_staging',
         'role_arn': 'arn:aws:iam::123456789012:role/GlueServiceRole',
         'region': 'us-east-1'

@@ -6,7 +6,7 @@ Usage:
   python setup_lakeformation_complete.py \
     --bucket iceberg-data-storage-bucket \
     --prefix iceberg-data \
-    --database iceberg_db \
+    --database collections_db \
     --table collections_data_staging \
     --role-arn arn:aws:iam::123456789012:role/GlueJobRole \
     --region us-east-1
@@ -223,7 +223,7 @@ Example:
   python setup_lakeformation_complete.py \\
     --bucket iceberg-data-storage-bucket \\
     --prefix iceberg-data \\
-    --database iceberg_db \\
+    --database collections_db \\
     --table collections_data_staging \\
     --role-arn arn:aws:iam::123456789012:role/GlueJobRole \\
     --region us-east-1

@@ -116,8 +116,8 @@ Views created successfully: 2
 Views failed: 0
 
 ✓ Successfully created dual-engine views:
-  - iceberg_db.entity_view_entity1_set1
-  - iceberg_db.entity_view_entity1_set2
+  - collections_db.entity_view_entity1_set1
+  - collections_db.entity_view_entity1_set2
 ```
 
 ## Usage
@@ -126,14 +126,14 @@ Views failed: 0
 
 ```sql
 -- Basic query
-SELECT * FROM iceberg_db.entity_view_entity1_set1 LIMIT 10;
+SELECT * FROM collections_db.entity_view_entity1_set1 LIMIT 10;
 
 -- Count rows
-SELECT COUNT(*) FROM iceberg_db.entity_view_entity1_set1;
+SELECT COUNT(*) FROM collections_db.entity_view_entity1_set1;
 
 -- Filter data
 SELECT entity1, entity2, COUNT(*) as count
-FROM iceberg_db.entity_view_entity1_set1
+FROM collections_db.entity_view_entity1_set1
 GROUP BY entity1, entity2;
 
 -- Join views
@@ -141,8 +141,8 @@ SELECT
     v1.entity1,
     v1.entity2,
     v2.entity2 as other_entity2
-FROM iceberg_db.entity_view_entity1_set1 v1
-LEFT JOIN iceberg_db.entity_view_entity1_set2 v2
+FROM collections_db.entity_view_entity1_set1 v1
+LEFT JOIN collections_db.entity_view_entity1_set2 v2
   ON v1.entity3 = v2.entity3;
 ```
 

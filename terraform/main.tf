@@ -31,9 +31,9 @@ resource "aws_s3_bucket_versioning" "iceberg_data_versioning" {
 }
 
 # AWS Glue Database
-resource "aws_glue_catalog_database" "iceberg_database" {
+resource "aws_glue_catalog_database" "collections_database" {
   name = var.glue_database_name
-  description = "Database for Iceberg tables"
+  description = "Database for Iceberg tables and collections data"
 }
 
 # IAM Role for Glue
@@ -257,8 +257,8 @@ resource "aws_iam_role_policy_attachment" "glue_passrole_policy_attachment" {
 resource "aws_s3_object" "glue_script" {
   bucket = aws_s3_bucket.iceberg_data_bucket.id
   key    = "scripts/glue_csv_to_iceberg.py"
-  source = "../scripts/glue_csv_to_iceberg.py"
-  etag   = filemd5("../scripts/glue_csv_to_iceberg.py")
+  source = "../jobs/glue_csv_to_iceberg.py"
+  etag   = filemd5("../jobs/glue_csv_to_iceberg.py")
 }
 
 # Upload Lake Formation setup scripts to S3
@@ -309,11 +309,12 @@ resource "aws_glue_job" "csv_to_iceberg_job" {
     "--job-language"         = "python"
     "--raw_data_bucket"      = aws_s3_bucket.raw_data_bucket.id
     "--raw_data_prefix"      = var.raw_data_prefix
-    "--database_name"        = aws_glue_catalog_database.iceberg_database.name
+    "--database_name"        = aws_glue_catalog_database.collections_database.name
     "--table_name"           = var.glue_table_name
     "--iceberg_data_bucket"  = aws_s3_bucket.iceberg_data_bucket.id
     "--iceberg_data_prefix"  = var.iceberg_data_prefix
     "--catalog_id"           = data.aws_caller_identity.current.account_id
+    "--aws_region"           = var.aws_region
     "--enable-metrics"       = ""
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-spark-ui"      = "true"

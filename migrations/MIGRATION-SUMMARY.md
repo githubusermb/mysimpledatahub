@@ -49,10 +49,10 @@ If you have an existing deployment, follow these steps:
 ### Step 1: Backup Existing Data
 ```bash
 # Export existing table metadata
-aws glue get-table --database-name iceberg_db --name entity_data > entity_data_backup.json
+aws glue get-table --database-name collections_db --name entity_data > entity_data_backup.json
 
 # List existing views
-aws glue get-tables --database-name iceberg_db --query 'TableList[?starts_with(Name, `entity_view`)].Name'
+aws glue get-tables --database-name collections_db --query 'TableList[?starts_with(Name, `entity_view`)].Name'
 ```
 
 ### Step 2: Update Terraform Configuration
@@ -76,7 +76,7 @@ If you want to rename the existing table:
 
 ```sql
 -- In Athena or Glue Spark
-ALTER TABLE iceberg_db.entity_data RENAME TO iceberg_db.collections_data_staging;
+ALTER TABLE collections_db.entity_data RENAME TO collections_db.collections_data_staging;
 ```
 
 Or create a new table and migrate data:
@@ -90,8 +90,8 @@ aws glue start-job-run --job-name csv-to-iceberg-ingestion
 
 ```bash
 # Drop old views (optional - if you want to clean up)
-aws glue delete-table --database-name iceberg_db --name entity_view_fry9c
-aws glue delete-table --database-name iceberg_db --name entity_view_fry15
+aws glue delete-table --database-name collections_db --name entity_view_fry9c
+aws glue delete-table --database-name collections_db --name entity_view_fry15
 
 # Run the updated views job to create new views
 aws glue start-job-run --job-name create-views-dual-engine
@@ -103,12 +103,12 @@ Update any existing queries or applications that reference the old names:
 
 ```sql
 -- OLD queries
-SELECT * FROM iceberg_db.entity_data;
-SELECT * FROM iceberg_db.entity_view_fry9c;
+SELECT * FROM collections_db.entity_data;
+SELECT * FROM collections_db.entity_view_fry9c;
 
 -- NEW queries
-SELECT * FROM iceberg_db.collections_data_staging;
-SELECT * FROM iceberg_db.fry9c_report_view;
+SELECT * FROM collections_db.collections_data_staging;
+SELECT * FROM collections_db.fry9c_report_view;
 ```
 
 ### Step 6: Update Lake Formation Permissions
@@ -119,13 +119,13 @@ If you have existing Lake Formation permissions, update them:
 # Grant permissions on new table name
 aws lakeformation grant-permissions \
   --principal DataLakePrincipalIdentifier=arn:aws:iam::ACCOUNT:user/analyst \
-  --resource '{"Table":{"DatabaseName":"iceberg_db","Name":"collections_data_staging"}}' \
+  --resource '{"Table":{"DatabaseName":"collections_db","Name":"collections_data_staging"}}' \
   --permissions SELECT DESCRIBE
 
 # Grant permissions on new view pattern
 aws lakeformation grant-permissions \
   --principal DataLakePrincipalIdentifier=arn:aws:iam::ACCOUNT:user/analyst \
-  --resource '{"Table":{"DatabaseName":"iceberg_db","Name":"fry9c_report_view"}}' \
+  --resource '{"Table":{"DatabaseName":"collections_db","Name":"fry9c_report_view"}}' \
   --permissions SELECT DESCRIBE
 ```
 
@@ -147,7 +147,7 @@ The new naming convention will be used automatically.
 
 **Athena:**
 ```sql
-SELECT * FROM iceberg_db.collections_data_staging 
+SELECT * FROM collections_db.collections_data_staging 
 WHERE seriesid = 'fry9c' 
 LIMIT 10;
 ```
@@ -155,7 +155,7 @@ LIMIT 10;
 **Glue Spark:**
 ```python
 df = spark.sql("""
-    SELECT * FROM glue_catalog.iceberg_db.collections_data_staging 
+    SELECT * FROM glue_catalog.collections_db.collections_data_staging 
     WHERE seriesid = 'fry9c' 
     LIMIT 10
 """)
@@ -167,10 +167,10 @@ df.show()
 **Athena:**
 ```sql
 -- Query specific report
-SELECT * FROM iceberg_db.fry9c_report_view LIMIT 10;
+SELECT * FROM collections_db.fry9c_report_view LIMIT 10;
 
 -- List all report views
-SHOW TABLES IN iceberg_db LIKE '%_report_view';
+SHOW TABLES IN collections_db LIKE '%_report_view';
 
 -- Join multiple reports
 SELECT 
@@ -178,8 +178,8 @@ SELECT
     f9.aod,
     f9.RCON2170 AS fry9c_value,
     f15.RCON3210 AS fry15_value
-FROM iceberg_db.fry9c_report_view f9
-LEFT JOIN iceberg_db.fry15_report_view f15
+FROM collections_db.fry9c_report_view f9
+LEFT JOIN collections_db.fry15_report_view f15
   ON f9.rssdid = f15.rssdid
   AND f9.aod = f15.aod;
 ```
@@ -187,7 +187,7 @@ LEFT JOIN iceberg_db.fry15_report_view f15
 **Glue Spark:**
 ```python
 # Query specific report
-df = spark.sql("SELECT * FROM glue_catalog.iceberg_db.fry9c_report_view LIMIT 10")
+df = spark.sql("SELECT * FROM glue_catalog.collections_db.fry9c_report_view LIMIT 10")
 df.show()
 
 # Join multiple reports
@@ -197,8 +197,8 @@ joined_df = spark.sql("""
         f9.aod,
         f9.RCON2170 AS fry9c_value,
         f15.RCON3210 AS fry15_value
-    FROM glue_catalog.iceberg_db.fry9c_report_view f9
-    LEFT JOIN glue_catalog.iceberg_db.fry15_report_view f15
+    FROM glue_catalog.collections_db.fry9c_report_view f9
+    LEFT JOIN glue_catalog.collections_db.fry15_report_view f15
       ON f9.rssdid = f15.rssdid
       AND f9.aod = f15.aod
 """)
