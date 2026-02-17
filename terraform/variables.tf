@@ -10,20 +10,20 @@ variable "aws_region" {
 variable "raw_data_bucket_name" {
   description = "Name of the S3 bucket for raw CSV data"
   type        = string
-  default     = "mb-raw-data-ingestion-bucket"
+  default     = "sdh-raw-data-ingestion-bucket"
 }
 
 variable "iceberg_data_bucket_name" {
   description = "Name of the S3 bucket for Iceberg data"
   type        = string
-  default     = "iceberg-data-storage-bucket"
+  default     = "sdh-staging-data-storage-bucket"
 }
 
 # S3 Prefixes
 variable "raw_data_prefix" {
   description = "S3 prefix for raw CSV data"
   type        = string
-  default     = "raw-data/"
+  default     = "collections-data/"
 }
 
 variable "iceberg_data_prefix" {
@@ -36,7 +36,7 @@ variable "iceberg_data_prefix" {
 variable "glue_database_name" {
   description = "Name of the AWS Glue database"
   type        = string
-  default     = "iceberg_db"
+  default     = "collections_db"
 }
 
 variable "glue_table_name" {

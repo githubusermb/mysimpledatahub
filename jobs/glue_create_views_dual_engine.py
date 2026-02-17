@@ -52,6 +52,58 @@ print(f"AWS Region: {aws_region}")
 glue_client = boto3.client('glue', region_name=aws_region)
 athena_client = boto3.client('athena', region_name=aws_region)
 
+# Helper function to execute Athena query and wait for completion
+def execute_athena_query(query_string, description):
+    """Execute an Athena query and wait for it to complete"""
+    print(f"\n{description}")
+    print(f"Query preview: {query_string[:300]}...")
+    
+    try:
+        response = athena_client.start_query_execution(
+            QueryString=query_string,
+            QueryExecutionContext={
+                'Database': database_name
+            },
+            ResultConfiguration={
+                'OutputLocation': athena_output_location
+            }
+        )
+        
+        query_execution_id = response['QueryExecutionId']
+        print(f"Query execution ID: {query_execution_id}")
+        
+        # Wait for query to complete
+        max_attempts = 30
+        attempt = 0
+        while attempt < max_attempts:
+            attempt += 1
+            query_status = athena_client.get_query_execution(
+                QueryExecutionId=query_execution_id
+            )
+            
+            status = query_status['QueryExecution']['Status']['State']
+            
+            if status == 'SUCCEEDED':
+                print(f"✓ Query succeeded")
+                return True
+            elif status in ['FAILED', 'CANCELLED']:
+                reason = query_status['QueryExecution']['Status'].get('StateChangeReason', 'Unknown')
+                print(f"✗ Query {status.lower()}: {reason}")
+                return False
+            else:
+                if attempt % 5 == 0:  # Print every 5 attempts
+                    print(f"  Waiting... ({attempt}/{max_attempts})")
+                time.sleep(2)
+        
+        print(f"✗ Query timed out after {max_attempts * 2} seconds")
+        return False
+        
+    except Exception as e:
+        print(f"✗ Error executing query: {str(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return False
+
 # Read the source table using the Glue catalog
 source_df = spark.sql(f"SELECT * FROM glue_catalog.{database_name}.{source_table_name}")
 
@@ -123,58 +175,6 @@ except Exception as e:
 print(f"\n{'='*80}")
 print(f"STEP 2: Creating Series-Specific Report Views")
 print(f"{'='*80}")
-
-# Helper function to execute Athena query and wait for completion
-def execute_athena_query(query_string, description):
-    """Execute an Athena query and wait for it to complete"""
-    print(f"\n{description}")
-    print(f"Query preview: {query_string[:300]}...")
-    
-    try:
-        response = athena_client.start_query_execution(
-            QueryString=query_string,
-            QueryExecutionContext={
-                'Database': database_name
-            },
-            ResultConfiguration={
-                'OutputLocation': athena_output_location
-            }
-        )
-        
-        query_execution_id = response['QueryExecutionId']
-        print(f"Query execution ID: {query_execution_id}")
-        
-        # Wait for query to complete
-        max_attempts = 30
-        attempt = 0
-        while attempt < max_attempts:
-            attempt += 1
-            query_status = athena_client.get_query_execution(
-                QueryExecutionId=query_execution_id
-            )
-            
-            status = query_status['QueryExecution']['Status']['State']
-            
-            if status == 'SUCCEEDED':
-                print(f"✓ Query succeeded")
-                return True
-            elif status in ['FAILED', 'CANCELLED']:
-                reason = query_status['QueryExecution']['Status'].get('StateChangeReason', 'Unknown')
-                print(f"✗ Query {status.lower()}: {reason}")
-                return False
-            else:
-                if attempt % 5 == 0:  # Print every 5 attempts
-                    print(f"  Waiting... ({attempt}/{max_attempts})")
-                time.sleep(2)
-        
-        print(f"✗ Query timed out after {max_attempts * 2} seconds")
-        return False
-        
-    except Exception as e:
-        print(f"✗ Error executing query: {str(e)}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
-        return False
 
 # Create views for each seriesid value
 created_views = []
