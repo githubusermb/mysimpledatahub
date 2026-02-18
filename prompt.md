@@ -7,3 +7,28 @@ create glue job to create dynamic view for each distinct entity1 value  in entit
 
 
 create a copy of generate_smaple_csv.py that has header seriesid,aod,rssdid,submissionts,key,value. Generate first 1000 records with seriesid as FRY9C,aod as 20230131, rssdid as 1234567, key as each distinct value from comma separated list in mdrm/output_fry9c.txt, value as random integer value. Generate next 1000 records with seriesid as FRY9C,aod as 20231231, rssdid as 2345678, key as each distinct value from comma separated list in mdrm/output_fry9c.txt, value as random integer value. Generate next 1000 records with seriesid as FRY15,aod as 20241231, rssdid as 2345678, key as each distinct value from comma separated list in mdrm/output_fry15.txt, value as random integer value.
+
+
+STATSDW report item view - 
+SELECT
+    DISTINCT CAST("items"."filing_id" AS VARCHAR(250)) AS "filing_id",
+    CAST("items"."series_id" AS VARCHAR(20)) AS "series_id",
+    CAST("schedule"."schedule_id" AS VARCHAR(250)) AS "schedule_id",
+    CAST("items"."rssd_id" AS VARCHAR(22)) AS "rssd_id",
+    "items"."as_of_date" AS "as_of_date",
+    CAST("items"."item_mdrm" AS VARCHAR(8)) AS "item_mdrm",
+    CAST("items"."item_description" AS VARCHAR(4000)) AS "item_description",
+    CAST("items"."item_value" AS VARCHAR(4000)) AS "item_value",
+    CAST("items"."context_level1_mdrm" AS VARCHAR(8)) AS "context_level1_mdrm",
+    CAST("items"."context_level1_desc" AS VARCHAR(4000)) AS "context_level1_desc",
+    CAST("items"."context_level1_value" AS VARCHAR(4000)) AS "context_level1_value",
+    CAST("items"."context_level2_mdrm" AS VARCHAR(8)) AS "context_level2_mdrm",
+    CAST("items"."context_level2_desc" AS VARCHAR(4000)) AS "context_level2_desc",
+    CAST("items"."context_level2_value" AS VARCHAR(4000)) AS "context_level2_value",
+    CAST("items"."context_level3_mdrm" AS VARCHAR(8)) AS "context_level3_mdrm",
+    CAST("items"."context_level3_desc" AS VARCHAR(4000)) AS "context_level3_desc",
+    CAST("items"."context_level3_value" AS VARCHAR(4000)) AS "context_level3_value",
+    CAST("items"."submission_datetime" AS TIMESTAMP) AS "submission_datetime",
+    CAST("items"."filing_status" AS VARCHAR(30)) AS "filing_status",
+    CAST("items"."estimated_flag" AS VARCHAR(250)) AS "estimated_flag",
+    CAST("items"."estimated_by" AS VARCHAR(250)) AS "estimated_by"
