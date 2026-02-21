@@ -1,0 +1,81 @@
+item_mdrm,item_desc,context_level1_mdrm,context_level1_desc,context_level1_value
+GSWAM438,1a Bills,GSWA0001,Long  1,1
+GSWAN749,1b Floating Rate Notes (FRN),GSWA0001,Long  1,1
+GSWAM440,1c Coupons due in less than or equal to 2 years,GSWA0001,Long  1,1
+GSWAM442,1d Coupons due in more than 2 years but less than or equal to 3 years,GSWA0001,Long  1,1
+GSWAM444,1e Coupons due in more than 3 years but less than or equal to 6 years,GSWA0001,Long  1,1
+GSWAM446,1f Coupons due in more than 6 years but less than or equal to 7 years,GSWA0001,Long  1,1
+GSWAM448,1g Coupons due in more than 7 years but less than or equal to 11 years ,GSWA0001,Long  1,1
+GSWALF56,1h  Treasury Coupons due in more than 11 years but less than or equal to 21 years,GSWA0001,Long  1,1
+GSWALF58,1i  Treasury Coupons due in more than 21 years,GSWA0001,Long  1,1
+GSWAM452,2a TIPS due in less than or equal to 2 years,GSWA0001,Long  1,1
+GSWAM454,2b TIPS due in more than 2 years but less than or equal to 6 years,GSWA0001,Long  1,1
+GSWAM456,2c TIPS due in more than 6 years but less than or equal to 11 years,GSWA0001,Long  1,1
+GSWAM458,2d TIPS due in more than 11 years,GSWA0001,Long  1,1
+GSWAM460,3a Discount notes,GSWA0001,Long  1,1
+GSWAM462,3b Coupons,GSWA0001,Long  1,1
+GSWAMF98,4a  Federal Agency and GSE Residential Pass-through MBS TBAs,GSWA0001,Long  1,1
+GSWAMG00,4b  Federal Agency and GSE Residential Pass-through MBS Specified Pools,GSWA0001,Long  1,1
+GSWAM466,4c All Other Federal Agency and GSE Residential MBS,GSWA0001,Long  1,1
+GSWAM468,4d Federal Agency and GSE CMBS,GSWA0001,Long  1,1
+GSWAM470,4e Non-Agency Residential MBS,GSWA0001,Long  1,1
+GSWAM472,4f Other CMBS,GSWA0001,Long  1,1
+GSWAM474,5a Commercial paper,GSWA0001,Long  1,1
+GSWAM476,5b Due in less than or equal to 13 months,GSWA0001,Long  1,1
+GSWAN757,5c Due in more than 13 months but less than or equal to 5 years,GSWA0001,Long  1,1
+GSWAR784,5d Due in more than 5 years but less than or equal to 10 years,GSWA0001,Long  1,1
+GSWAR786,5e Due in more than 10 years,GSWA0001,Long  1,1
+GSWAR788,5f Due in less than or equal to 13 months,GSWA0001,Long  1,1
+GSWAR790,5g Due in more than 13 months but less than or equal to 5 years,GSWA0001,Long  1,1
+GSWAR792,5h Due in more than 5 years but less than or equal to 10 years,GSWA0001,Long  1,1
+GSWAR794,5i Due in more than 10 years,GSWA0001,Long  1,1
+GSWAM482,6a Due in less than or equal to 13 months,GSWA0001,Long  1,1
+GSWAR796,6b Due in more than 13 months but less than or equal to 5 years,GSWA0001,Long  1,1
+GSWAR798,6c Due in more than 5 years but less than or equal to 10 years,GSWA0001,Long  1,1
+GSWAR800,6d Due in more than 10 years,GSWA0001,Long  1,1
+GSWAM486,6e Variable-rate demand notes,GSWA0001,Long  1,1
+GSWAM488,7a Credit card-backed securities,GSWA0001,Long  1,1
+GSWAM490,7b Student loan-backed securities,GSWA0001,Long  1,1
+GSWAM492,7c Automobile loan-backed securities,GSWA0001,Long  1,1
+GSWAM494,7d Other asset-backed securities,GSWA0001,Long  1,1
+GSWAM496,8  Total (Lines 1 through 7),GSWA0001,Long  1,1
+GSWAM439,1a Bills,GSWA0001,Short  2,2
+GSWAN756,1b Floating Rate Notes (FRN),GSWA0001,Short  2,2
+GSWAM441,1c Coupons due in less than or equal to 2 years,GSWA0001,Short  2,2
+GSWAM443,1d Coupons due in more than 2 years but less than or equal to 3 years,GSWA0001,Short  2,2
+GSWAM445,1e Coupons due in more than 3 years but less than or equal to 6 years,GSWA0001,Short  2,2
+GSWAM447,1f Coupons due in more than 6 years but less than or equal to 7 years,GSWA0001,Short  2,2
+GSWAM449,1g Coupons due in more than 7 years but less than or equal to 11 years ,GSWA0001,Short  2,2
+GSWALF57,1h  Treasury Coupons due in more than 11 years but less than or equal to 21 years,GSWA0001,Short  2,2
+GSWALF59,1i  Treasury Coupons due in more than 21 years,GSWA0001,Short  2,2
+GSWAM453,2a TIPS due in less than or equal to 2 years,GSWA0001,Short  2,2
+GSWAM455,2b TIPS due in more than 2 years but less than or equal to 6 years,GSWA0001,Short  2,2
+GSWAM457,2c TIPS due in more than 6 years but less than or equal to 11 years,GSWA0001,Short  2,2
+GSWAM459,2d TIPS due in more than 11 years,GSWA0001,Short  2,2
+GSWAM461,3a Discount notes,GSWA0001,Short  2,2
+GSWAM463,3b Coupons,GSWA0001,Short  2,2
+GSWAMF96,4a  Federal Agency and GSE Residential Pass-through MBS TBAs,GSWA0001,Short  2,2
+GSWAMF99,4b  Federal Agency and GSE Residential Pass-through MBS Specified Pools,GSWA0001,Short  2,2
+GSWAM467,4c All Other Federal Agency and GSE Residential MBS,GSWA0001,Short  2,2
+GSWAM469,4d Federal Agency and GSE CMBS,GSWA0001,Short  2,2
+GSWAM471,4e Non-Agency Residential MBS,GSWA0001,Short  2,2
+GSWAM473,4f Other CMBS,GSWA0001,Short  2,2
+GSWAM475,5a Commercial paper,GSWA0001,Short  2,2
+GSWAM477,5b Due in less than or equal to 13 months,GSWA0001,Short  2,2
+GSWAR783,5c Due in more than 13 months but less than or equal to 5 years,GSWA0001,Short  2,2
+GSWAR785,5d Due in more than 5 years but less than or equal to 10 years,GSWA0001,Short  2,2
+GSWAR787,5e Due in more than 10 years,GSWA0001,Short  2,2
+GSWAR789,5f Due in less than or equal to 13 months,GSWA0001,Short  2,2
+GSWAR791,5g Due in more than 13 months but less than or equal to 5 years,GSWA0001,Short  2,2
+GSWAR793,5h Due in more than 5 years but less than or equal to 10 years,GSWA0001,Short  2,2
+GSWAR795,5i Due in more than 10 years,GSWA0001,Short  2,2
+GSWAM483,6a Due in less than or equal to 13 months,GSWA0001,Short  2,2
+GSWAR797,6b Due in more than 13 months but less than or equal to 5 years,GSWA0001,Short  2,2
+GSWAR799,6c Due in more than 5 years but less than or equal to 10 years,GSWA0001,Short  2,2
+GSWAR801,6d Due in more than 10 years,GSWA0001,Short  2,2
+GSWAM487,6e Variable-rate demand notes,GSWA0001,Short  2,2
+GSWAM489,7a Credit card-backed securities,GSWA0001,Short  2,2
+GSWAM491,7b Student loan-backed securities,GSWA0001,Short  2,2
+GSWAM493,7c Automobile loan-backed securities,GSWA0001,Short  2,2
+GSWAM495,7d Other asset-backed securities,GSWA0001,Short  2,2
+GSWAM497,8  Total (Lines 1 through 7),GSWA0001,Short  2,2
