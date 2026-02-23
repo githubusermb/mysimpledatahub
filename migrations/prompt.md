@@ -8,7 +8,7 @@ update terraform and if needed, glue jobs to create tablename with _tbl as prefi
 
 rename glue_create_normal_views.py to glue_create_normal_views.py and update references to this script for new name.
 
-update glue_create_normal_views.py to create 2 dynamic views - collections_data_vw which is same as collections_data_tbl, cdp_data_vw that gives data for specific seriesid. seriesid filter should be externalized in glue job. 
+create another glue job that creates 2 dynamic views - collections_data_vw which is same as collections_data_tbl, cdp_data_vw that gives data for specific seriesid. seriesid filter should be externalized in glue job. name this glue job as glue_create_normal_views.py
 
 create another glue job that creates pivoted views for distinct seriesid in collections_data_tbl. value of context level mdrm and value should be combined with item_mdrm value following pattern <context_level1_mdrm>=<context_level1_value>:<context_level2_mdrm>=<context_level2_value>:<context_level3_mdrm>=<context_level3_value>:<item_value>. if no context info exist then only item_value should be in the record for that item_mdrm. other columns in view should be seriesid,aod,rssdid,submission_ts, ingest_ts. name the glue job as glue_create_series_wide_views.py.
 
