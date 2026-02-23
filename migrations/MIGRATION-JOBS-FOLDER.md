@@ -15,7 +15,7 @@ Glue job scripts have been moved from the `scripts/` folder to a dedicated `jobs
 mysimpledatahub/
 ├── scripts/
 │   ├── glue_csv_to_iceberg.py              # Glue job
-│   ├── glue_create_views_dual_engine.py    # Glue job
+│   ├── glue_create_normal_views.py    # Glue job
 │   ├── generate_sample_csv.py              # Helper script
 │   ├── setup_lakeformation_complete.py     # Helper script
 │   └── ... (other helper scripts)
@@ -29,7 +29,7 @@ mysimpledatahub/
 ├── jobs/                                    # NEW: Glue jobs only
 │   ├── README.md                            # Job documentation
 │   ├── glue_csv_to_iceberg.py              # Glue job
-│   └── glue_create_views_dual_engine.py    # Glue job
+│   └── glue_create_normal_views.py    # Glue job
 │
 ├── scripts/                                 # Helper scripts only
 │   ├── generate_sample_csv.py
@@ -46,7 +46,7 @@ mysimpledatahub/
 | File | Old Location | New Location |
 |------|-------------|--------------|
 | `glue_csv_to_iceberg.py` | `scripts/` | `jobs/` |
-| `glue_create_views_dual_engine.py` | `scripts/` | `jobs/` |
+| `glue_create_normal_views.py` | `scripts/` | `jobs/` |
 
 ### Terraform Updates
 
@@ -69,14 +69,14 @@ resource "aws_s3_object" "glue_script" {
 ```hcl
 # Before
 resource "aws_s3_object" "glue_views_dual_engine_script" {
-  source = "../scripts/glue_create_views_dual_engine.py"
-  etag   = filemd5("../scripts/glue_create_views_dual_engine.py")
+  source = "../scripts/glue_create_normal_views.py"
+  etag   = filemd5("../scripts/glue_create_normal_views.py")
 }
 
 # After
 resource "aws_s3_object" "glue_views_dual_engine_script" {
-  source = "../jobs/glue_create_views_dual_engine.py"
-  etag   = filemd5("../jobs/glue_create_views_dual_engine.py")
+  source = "../jobs/glue_create_normal_views.py"
+  etag   = filemd5("../jobs/glue_create_normal_views.py")
 }
 ```
 
@@ -115,7 +115,7 @@ scripts/    → Helper/utility scripts (run locally or in Lambda)
 
 **Files**:
 - `glue_csv_to_iceberg.py` - Data ingestion job
-- `glue_create_views_dual_engine.py` - View creation job
+- `glue_create_normal_views.py` - View creation job
 - `README.md` - Job documentation
 
 **Characteristics**:
@@ -167,7 +167,7 @@ ls mysimpledatahub/jobs/
 
 # Should see:
 # - glue_csv_to_iceberg.py
-# - glue_create_views_dual_engine.py
+# - glue_create_normal_views.py
 # - README.md
 ```
 
@@ -190,7 +190,7 @@ terraform apply
 aws glue start-job-run --job-name csv-to-iceberg-ingestion
 
 # Test views job
-aws glue start-job-run --job-name create-views-dual-engine
+aws glue start-job-run --job-name create-views-normal
 
 # Check job status
 aws glue get-job-runs --job-name csv-to-iceberg-ingestion --max-results 1
@@ -254,7 +254,7 @@ aws s3 ls s3://your-bucket/scripts/
 
 # Should see:
 # glue_csv_to_iceberg.py
-# glue_create_views_dual_engine.py
+# glue_create_normal_views.py
 ```
 
 ### Check Job Configuration
@@ -289,7 +289,7 @@ terraform apply
 ```bash
 # Copy files back to scripts folder
 cp jobs/glue_csv_to_iceberg.py scripts/
-cp jobs/glue_create_views_dual_engine.py scripts/
+cp jobs/glue_create_normal_views.py scripts/
 
 # Update Terraform
 # Edit main.tf and views_dual_engine_job.tf

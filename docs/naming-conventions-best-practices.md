@@ -312,7 +312,7 @@ Example:
   View: fry9c_report_view
   Description: "Pivoted view of FR Y-9C regulatory data with key-value pairs as columns"
   Filter: "WHERE seriesid = 'fry9c'"
-  Base Table: collections_data_staging
+  Base Table: collections_data_tbl
 ```
 
 ### Naming for Multi-Dialect Views
@@ -650,7 +650,7 @@ Database:
   ✅ regulatory_reporting
 
 Tables:
-  ✅ collections_data_staging
+  ✅ collections_data_tbl
   ✅ mdrm_submission_data_processed
   ✅ call_report_metrics_daily
 
@@ -671,7 +671,7 @@ Partitions:
   ✅ PARTITIONED BY (seriesid, ingestion_date)
 
 S3 Path:
-  ✅ s3://regulatory-data-prod/raw/mdrm/collections_data_staging/seriesid=fry9c/ingestion_date=2024-03-31/
+  ✅ s3://regulatory-data-prod/raw/mdrm/collections_data_tbl/seriesid=fry9c/ingestion_date=2024-03-31/
 ```
 
 ### Example 2: E-Commerce Analytics

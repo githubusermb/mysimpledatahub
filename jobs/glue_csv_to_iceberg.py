@@ -48,7 +48,7 @@ job.init(args['JOB_NAME'], args)
 raw_data_bucket = args['raw_data_bucket']
 raw_data_prefix = args['raw_data_prefix']
 database_name = args['database_name']
-table_name = args['table_name']  # Should be 'collections_data_staging'
+table_name = args['table_name']  # Should be 'collections_data_tbl'
 iceberg_data_bucket = args['iceberg_data_bucket']
 iceberg_data_prefix = args['iceberg_data_prefix']
 catalog_id = args['catalog_id']
@@ -282,13 +282,43 @@ def create_dataframe_from_validated_files(spark, valid_files):
             if not valid_files:
                 raise Exception("No valid files to process")
                 
-            # Read the validated files
-            df = spark.read.option("header", "true").option("inferSchema", "true").csv(valid_files)
+            # Read the validated files with proper CSV options
+            df = spark.read \
+                .option("header", "true") \
+                .option("inferSchema", "true") \
+                .option("quote", "\"") \
+                .option("escape", "\"") \
+                .option("multiLine", "true") \
+                .option("mode", "DROPMALFORMED") \
+                .csv(valid_files)
             
             # Force evaluation to check for errors
             count = df.count()
             if count == 0:
                 raise Exception("DataFrame is empty after reading files")
+            
+            # Validate that seriesid column exists and has valid data
+            if "seriesid" in df.columns:
+                invalid_count = df.filter(
+                    (col("seriesid").isNull()) | 
+                    (col("seriesid") == "") |
+                    (~col("seriesid").rlike("^(FRY9C|FRY15|FR2004A)"))
+                ).count()
+                
+                if invalid_count > 0:
+                    print(f"WARNING: Found {invalid_count} rows with invalid seriesid values")
+                    print("Sample invalid rows:")
+                    df.filter(
+                        (col("seriesid").isNull()) | 
+                        (col("seriesid") == "") |
+                        (~col("seriesid").rlike("^(FRY9C|FRY15|FR2004A)"))
+                    ).show(5, truncate=False)
+                    
+                    # Filter out invalid rows
+                    print("Filtering out invalid rows...")
+                    df = df.filter(col("seriesid").rlike("^(FRY9C|FRY15|FR2004A)"))
+                    count = df.count()
+                    print(f"After filtering: {count} valid rows remaining")
                 
             print(f"Successfully created DataFrame with {count} rows")
             return df

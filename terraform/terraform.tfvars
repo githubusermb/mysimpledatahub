@@ -12,7 +12,7 @@ iceberg_data_prefix = "iceberg-data/"
 
 # Glue Database and Table Names
 glue_database_name = "collections_db"
-glue_table_name = "collections_data_staging"
+glue_table_name = "collections_data_tbl"
 
 
 # Athena User Permissions

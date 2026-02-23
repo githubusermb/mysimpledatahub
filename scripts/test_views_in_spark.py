@@ -1,6 +1,6 @@
 """
 Test Report Views in Spark
-Tests all report views created by the dual-engine views job
+Tests all report views created by the normal views job
 
 This script:
 1. Lists all report views in the database

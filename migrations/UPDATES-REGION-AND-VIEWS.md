@@ -28,7 +28,7 @@ lakeformation_client = boto3.client('lakeformation', region_name=aws_region)
 glue_client = boto3.client('glue', region_name=aws_region)
 ```
 
-**glue_create_views_dual_engine.py**
+**glue_create_normal_views.py**
 ```python
 # Before: No region parameter
 glue_client = boto3.client('glue')
@@ -64,14 +64,14 @@ default_arguments = {
 
 ### 2. Added collections_data_view
 
-A new view that provides access to all data in `collections_data_staging` with the same schema.
+A new view that provides access to all data in `collections_data_tbl` with the same schema.
 
 #### Purpose
 
 ```
 collections_data_view
 ├── Provides unified access to all regulatory data
-├── Same schema as collections_data_staging
+├── Same schema as collections_data_tbl
 ├── Works in both Athena and Glue Spark (multi-dialect)
 └── Simplifies queries across all series
 ```
@@ -82,11 +82,11 @@ collections_data_view
 # Step 1: Create view in Spark
 CREATE PROTECTED MULTI DIALECT VIEW collections_db.collections_data_view
 SECURITY DEFINER
-AS SELECT * FROM glue_catalog.collections_db.collections_data_staging
+AS SELECT * FROM glue_catalog.collections_db.collections_data_tbl
 
 # Step 2: Add Athena dialect
 ALTER VIEW collections_db.collections_data_view ADD DIALECT AS 
-SELECT * FROM collections_db.collections_data_staging
+SELECT * FROM collections_db.collections_data_tbl
 ```
 
 #### Schema
@@ -135,7 +135,7 @@ except glue_client.exceptions.EntityNotFoundException:
 ## View Hierarchy
 
 ```
-collections_data_staging (Iceberg Table)
+collections_data_tbl (Iceberg Table)
     ↓
     ├─> collections_data_view (All data, same schema)
     │   └─> Multi-dialect (Athena + Spark)
@@ -235,10 +235,10 @@ df.show()
 2. Run csv-to-iceberg-ingestion Job
    ├─> Reads CSV files
    ├─> Extracts ingest_timestamp from path
-   ├─> Creates/updates collections_data_staging table
+   ├─> Creates/updates collections_data_tbl table
    └─> Registers with Lake Formation (using aws_region)
 
-3. Run create-views-dual-engine Job (Auto-triggered)
+3. Run create-views-normal Job (Auto-triggered)
    ├─> Creates collections_data_view (all data)
    │   ├─> Spark dialect
    │   └─> Athena dialect
@@ -318,7 +318,7 @@ This will:
 aws glue start-job-run --job-name csv-to-iceberg-ingestion
 
 # Run views job (or wait for auto-trigger)
-aws glue start-job-run --job-name create-views-dual-engine
+aws glue start-job-run --job-name create-views-normal
 ```
 
 ### Step 4: Verify Views
@@ -328,7 +328,7 @@ aws glue start-job-run --job-name create-views-dual-engine
 SHOW TABLES IN collections_db;
 
 -- Should see:
--- collections_data_staging (table)
+-- collections_data_tbl (table)
 -- collections_data_view (view)
 -- fry9c_report_view (view)
 -- fry15_report_view (view)
@@ -344,7 +344,7 @@ SELECT COUNT(*) FROM collections_db.fry9c_report_view;
 
 ## Expected Job Output
 
-### create-views-dual-engine Job
+### create-views-normal Job
 
 ```
 ================================================================================
@@ -386,14 +386,14 @@ Found 150 distinct key values
 ✓✓✓ View fry9c_report_view successfully created for BOTH engines!
 
 ================================================================================
-DUAL-ENGINE VIEW CREATION SUMMARY
+normal VIEW CREATION SUMMARY
 ================================================================================
 Collections view: collections_data_view ✓
 Total seriesid values processed: 2
 Report views created successfully: 2
 Report views failed: 0
 
-✓ Successfully created dual-engine report views:
+✓ Successfully created normal report views:
   - collections_db.fry9c_report_view
   - collections_db.fry15_report_view
 ```
@@ -432,10 +432,10 @@ Table or view not found: collections_data_view
 **Solution:**
 ```bash
 # Re-run the views job
-aws glue start-job-run --job-name create-views-dual-engine
+aws glue start-job-run --job-name create-views-normal
 
 # Check job status
-aws glue get-job-runs --job-name create-views-dual-engine --max-results 1
+aws glue get-job-runs --job-name create-views-normal --max-results 1
 
 # Check logs
 aws logs tail /aws-glue/jobs/output --follow
@@ -456,7 +456,7 @@ This should not happen with the new recreation logic, but if it does:
 DROP VIEW IF EXISTS collections_db.collections_data_view;
 
 -- Re-run the job
-aws glue start-job-run --job-name create-views-dual-engine
+aws glue start-job-run --job-name create-views-normal
 ```
 
 ---

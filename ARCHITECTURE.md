@@ -57,9 +57,9 @@
 │           │ On Success Trigger                                               │
 │           ▼                                                                   │
 │  ┌─────────────────────────────────────────────────────────────────┐        │
-│  │  AWS Glue ETL Job #2: create-views-dual-engine                  │        │
+│  │  AWS Glue ETL Job #2: create-views-normal                  │        │
 │  │  ┌────────────────────────────────────────────────────────────┐ │        │
-│  │  │  • Read collections_data_staging table                     │ │        │
+│  │  │  • Read collections_data_tbl table                     │ │        │
 │  │  │  • Get distinct seriesid values                            │ │        │
 │  │  │  • For each seriesid:                                      │ │        │
 │  │  │    1. CREATE PROTECTED MULTI DIALECT VIEW (Spark)          │ │        │
@@ -73,7 +73,7 @@
 │  ┌─────────────────────────────────────────────────────────────────┐        │
 │  │  S3 Iceberg Data Bucket                                          │        │
 │  │  └── iceberg-data/                                               │        │
-│  │      └── collections_data_staging/                               │        │
+│  │      └── collections_data_tbl/                               │        │
 │  │          ├── metadata/                                           │        │
 │  │          │   ├── v1.metadata.json                                │        │
 │  │          │   └── snap-*.avro                                     │        │
@@ -95,14 +95,14 @@
 │  │  │  Database: iceberg_db                                      │ │        │
 │  │  │                                                             │ │        │
 │  │  │  Tables:                                                    │ │        │
-│  │  │  ├── collections_data_staging (Iceberg Table)              │ │        │
+│  │  │  ├── collections_data_tbl (Iceberg Table)              │ │        │
 │  │  │  │   └── Partitioned by: seriesid, ingest_timestamp        │ │        │
 │  │  │  │                                                          │ │        │
 │  │  │  └── Views (Multi-Dialect):                                │ │        │
 │  │  │      ├── fry9c_report_view                                 │ │        │
 │  │  │      ├── fry15_report_view                                 │ │        │
 │  │  │      └── <seriesid>_report_view                            │ │        │
-│  │  │          └── Dual-engine support (Spark + Athena)          │ │        │
+│  │  │          └── normal support (Spark + Athena)          │ │        │
 │  │  └────────────────────────────────────────────────────────────┘ │        │
 │  └─────────────────────────────────────────────────────────────────┘        │
 │           │                                                                   │
@@ -189,8 +189,8 @@
    └─> Register with Lake Formation
 
 4. View Creation (Auto-triggered)
-   └─> Glue Job: create-views-dual-engine
-       └─> Read collections_data_staging table
+   └─> Glue Job: create-views-normal
+       └─> Read collections_data_tbl table
        └─> Get distinct seriesid values
        └─> For each seriesid:
            ├─> CREATE PROTECTED MULTI DIALECT VIEW (Spark SQL)
@@ -209,7 +209,7 @@
 | Bucket | Purpose | Contents |
 |--------|---------|----------|
 | **raw-data-bucket** | Source CSV files | `collections-data/ingest_ts=<timestamp>/mdrm_data_<timestamp>.csv` |
-| **iceberg-data-bucket** | Iceberg table storage | `iceberg-data/collections_data_staging/` with metadata and data folders |
+| **iceberg-data-bucket** | Iceberg table storage | `iceberg-data/collections_data_tbl/` with metadata and data folders |
 | **athena-results** | Query results | Athena query outputs |
 
 ### Glue Jobs
@@ -217,7 +217,7 @@
 | Job Name | Type | Purpose | Trigger |
 |----------|------|---------|---------|
 | **csv-to-iceberg-ingestion** | ETL | Convert CSV to Iceberg | Manual / Lambda / Scheduled |
-| **create-views-dual-engine** | ETL | Create multi-dialect views | On ingestion success |
+| **create-views-normal** | ETL | Create multi-dialect views | On ingestion success |
 
 ### IAM Roles
 
@@ -230,7 +230,7 @@
 
 - **Data Location Registration**: S3 Iceberg bucket
 - **Database Permissions**: iceberg_db
-- **Table Permissions**: collections_data_staging, <seriesid>_report_view
+- **Table Permissions**: collections_data_tbl, <seriesid>_report_view
 - **Governed Tables**: GOVERNED=true for multi-dialect views
 
 ## Technology Stack
@@ -269,7 +269,7 @@
 
 ## Key Features
 
-✅ **Dual-Engine Views**: Single view works in both Athena and Glue Spark
+✅ **normal Views**: Single view works in both Athena and Glue Spark
 ✅ **Iceberg Format**: ACID transactions, time travel, schema evolution
 ✅ **Partitioning**: Optimized queries by seriesid and ingest_timestamp
 ✅ **Lake Formation**: Centralized permissions and governance

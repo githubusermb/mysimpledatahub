@@ -68,14 +68,24 @@ output "lakeformation_setup_command" {
   value       = "python scripts/setup_lakeformation_complete.py --bucket ${aws_s3_bucket.iceberg_data_bucket.id} --prefix ${var.iceberg_data_prefix} --database ${aws_glue_catalog_database.collections_database.name} --table ${var.glue_table_name} --role-arn ${aws_iam_role.glue_service_role.arn} --region ${var.aws_region}"
 }
 
-output "dynamic_views_job_name" {
-  description = "Name of the dynamic views Glue job"
-  value       = aws_glue_job.views_dual_engine_job.name
+output "normal_views_job_name" {
+  description = "Name of the normal views Glue job"
+  value       = aws_glue_job.views_normal_job.name
 }
 
-output "example_run_dynamic_views_job_command" {
-  description = "Example AWS CLI command to run the dynamic views job"
-  value       = "aws glue start-job-run --job-name ${aws_glue_job.views_dual_engine_job.name}"
+output "wide_views_job_name" {
+  description = "Name of the wide views Glue job"
+  value       = aws_glue_job.views_wide_job.name
+}
+
+output "example_run_normal_views_job_command" {
+  description = "Example AWS CLI command to run the normal views job"
+  value       = "aws glue start-job-run --job-name ${aws_glue_job.views_normal_job.name}"
+}
+
+output "example_run_wide_views_job_command" {
+  description = "Example AWS CLI command to run the wide views job"
+  value       = "aws glue start-job-run --job-name ${aws_glue_job.views_wide_job.name}"
 }
 
 output "athena_users_with_permissions" {

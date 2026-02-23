@@ -1,20 +1,20 @@
-# Upload Glue script for dual-engine views to S3
-resource "aws_s3_object" "glue_views_dual_engine_script" {
+# Upload Glue script for normal views to S3
+resource "aws_s3_object" "glue_views_normal_script" {
   bucket = aws_s3_bucket.iceberg_data_bucket.id
-  key    = "scripts/glue_create_views_dual_engine.py"
-  source = "../jobs/glue_create_views_dual_engine.py"
-  etag   = filemd5("../jobs/glue_create_views_dual_engine.py")
+  key    = "scripts/glue_create_normal_views.py"
+  source = "../jobs/glue_create_normal_views.py"
+  etag   = filemd5("../jobs/glue_create_normal_views.py")
 }
 
-# AWS Glue Job for creating dual-engine views
+# AWS Glue Job for creating normal views
 # Uses CREATE PROTECTED MULTI DIALECT VIEW + ALTER VIEW ADD DIALECT
-resource "aws_glue_job" "views_dual_engine_job" {
-  name     = "create-views-dual-engine"
+resource "aws_glue_job" "views_normal_job" {
+  name     = "create-views-normal"
   role_arn = aws_iam_role.glue_service_role.arn
   
   command {
     name            = "glueetl"
-    script_location = "s3://${aws_s3_bucket.iceberg_data_bucket.id}/scripts/glue_create_views_dual_engine.py"
+    script_location = "s3://${aws_s3_bucket.iceberg_data_bucket.id}/scripts/glue_create_normal_views.py"
     python_version  = "3"
   }
   
@@ -22,6 +22,7 @@ resource "aws_glue_job" "views_dual_engine_job" {
     "--job-language"         = "python"
     "--database_name"        = aws_glue_catalog_database.collections_database.name
     "--source_table_name"    = var.glue_table_name
+    "--cdp_seriesid_filter"  = "FRY9C"
     "--athena_output_location" = "s3://${aws_s3_bucket.iceberg_data_bucket.id}/athena-results/"
     "--aws_region"           = var.aws_region
     "--enable-metrics"       = ""
@@ -45,14 +46,14 @@ resource "aws_glue_job" "views_dual_engine_job" {
     max_concurrent_runs = 1
   }
   
-  depends_on = [aws_s3_object.glue_views_dual_engine_script]
+  depends_on = [aws_s3_object.glue_views_normal_script]
 }
 
-# AWS Glue Trigger for the dual-engine views job
-resource "aws_glue_trigger" "views_dual_engine_trigger" {
-  name          = "dual-engine-views-trigger"
+# AWS Glue Trigger for the normal views job
+resource "aws_glue_trigger" "views_normal_trigger" {
+  name          = "normal-views-trigger"
   type          = "CONDITIONAL"
-  description   = "Trigger to create dual-engine views after data ingestion completes"
+  description   = "Trigger to create normal views after data ingestion completes"
   
   predicate {
     conditions {
@@ -62,6 +63,6 @@ resource "aws_glue_trigger" "views_dual_engine_trigger" {
   }
   
   actions {
-    job_name = aws_glue_job.views_dual_engine_job.name
+    job_name = aws_glue_job.views_normal_job.name
   }
 }

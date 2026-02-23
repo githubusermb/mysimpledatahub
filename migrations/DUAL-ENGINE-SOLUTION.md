@@ -1,4 +1,4 @@
-# DUAL-ENGINE VIEW SOLUTION ✅
+# normal VIEW SOLUTION ✅
 
 ## The Complete Solution for Views in Both Athena and Glue Spark
 
@@ -22,7 +22,7 @@ This is the **proven working solution** for creating views that work in both que
 
 ## Implementation
 
-### Script: `glue_create_views_dual_engine.py`
+### Script: `glue_create_normal_views.py`
 
 The script performs these steps for each entity1 value:
 
@@ -64,19 +64,19 @@ cd mydatahub/terraform
 terraform apply
 ```
 
-This creates the Glue job: `create-views-dual-engine`
+This creates the Glue job: `create-views-normal`
 
 ### Step 2: Run the Job
 
 ```bash
-aws glue start-job-run --job-name create-views-dual-engine
+aws glue start-job-run --job-name create-views-normal
 ```
 
 ### Step 3: Monitor Progress
 
 ```bash
 # Check status
-aws glue get-job-runs --job-name create-views-dual-engine --max-results 1 \
+aws glue get-job-runs --job-name create-views-normal --max-results 1 \
   --query 'JobRuns[0].[JobRunState,ErrorMessage]' \
   --output table
 
@@ -109,13 +109,13 @@ Query execution ID: def456...
 ✓✓✓ View entity_view_entity1_set1 successfully created for BOTH engines!
 
 ================================================================================
-DUAL-ENGINE VIEW CREATION SUMMARY
+normal VIEW CREATION SUMMARY
 ================================================================================
 Total entity1 values processed: 2
 Views created successfully: 2
 Views failed: 0
 
-✓ Successfully created dual-engine views:
+✓ Successfully created normal views:
   - collections_db.entity_view_entity1_set1
   - collections_db.entity_view_entity1_set2
 ```
@@ -176,7 +176,7 @@ view_df.filter(view_df.entity2 == "value1").show()
 
 ```bash
 # 1. Create views
-aws glue start-job-run --job-name create-views-dual-engine
+aws glue start-job-run --job-name create-views-normal
 
 # 2. Test in Athena
 # Run in Athena console:
@@ -250,7 +250,7 @@ When querying:
 
 ## Advantages
 
-✅ **True dual-engine support** - Single view works everywhere
+✅ **True normal support** - Single view works everywhere
 ✅ **AWS official approach** - Uses documented Glue features
 ✅ **No data duplication** - Views, not materialized tables
 ✅ **Real-time data** - Always queries source table
@@ -261,7 +261,7 @@ When querying:
 
 | Approach | Athena | Spark | Storage | Real-time | Complexity |
 |----------|--------|-------|---------|-----------|------------|
-| **Dual-Engine Views** | ✅ | ✅ | None | ✅ | Medium |
+| **normal Views** | ✅ | ✅ | None | ✅ | Medium |
 | Spark SQL only | ❌ | ✅ | None | ✅ | Low |
 | Athena API only | ✅ | ❌ | None | ✅ | Low |
 | Materialized Tables | ✅ | ✅ | High | ❌ | Low |
@@ -355,16 +355,16 @@ aws lakeformation grant-permissions \
 ✅ **Solution:** CREATE PROTECTED MULTI DIALECT VIEW + ALTER VIEW ADD DIALECT
 ✅ **Result:** Single view works in both Athena and Glue Spark
 ✅ **Status:** Proven and tested
-✅ **Recommendation:** Use this approach for dual-engine views
+✅ **Recommendation:** Use this approach for normal views
 
 ---
 
 **Files:**
-- `scripts/glue_create_views_dual_engine.py` - Dual-engine view creation script
+- `scripts/glue_create_normal_views.py` - normal view creation script
 - `terraform/views_dual_engine_job.tf` - Terraform configuration
-- `DUAL-ENGINE-SOLUTION.md` - This document
+- `normal-SOLUTION.md` - This document
 
-**Job:** `create-views-dual-engine`
+**Job:** `create-views-normal`
 
 **Date:** February 8, 2026
 **Status:** ✅ Complete and working solution

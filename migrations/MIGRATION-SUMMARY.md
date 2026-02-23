@@ -9,7 +9,7 @@ The table and view naming conventions have been updated to better reflect the re
 ### Table Name Change
 ```
 OLD: entity_data
-NEW: collections_data_staging
+NEW: collections_data_tbl
 ```
 
 ### View Name Pattern Change
@@ -25,12 +25,12 @@ NEW: <seriesid>_report_view
 
 ### Glue Job Scripts
 - ✅ `scripts/glue_csv_to_iceberg.py` - Updated table name references
-- ✅ `scripts/glue_create_views_dual_engine.py` - Updated view naming pattern
+- ✅ `scripts/glue_create_normal_views.py` - Updated view naming pattern
 
 ### Terraform Configuration
-- ✅ `terraform/variables.tf` - Updated default table name to `collections_data_staging`
+- ✅ `terraform/variables.tf` - Updated default table name to `collections_data_tbl`
 - ✅ `terraform/terraform.tfvars` - Updated table name value
-- ✅ `terraform/views_dual_engine_job.tf` - Removed view_prefix (now uses `<seriesid>_report_view` pattern)
+- ✅ `terraform/views_normal_job.tf` - Removed view_prefix (now uses `<seriesid>_report_view` pattern)
 
 ### Helper Scripts
 - ✅ `scripts/setup_lakeformation_complete.py` - Updated example table name
@@ -61,7 +61,7 @@ cd terraform
 
 # Update terraform.tfvars
 # Change: glue_table_name = "entity_data"
-# To:     glue_table_name = "collections_data_staging"
+# To:     glue_table_name = "collections_data_tbl"
 
 # Review changes
 terraform plan
@@ -76,7 +76,7 @@ If you want to rename the existing table:
 
 ```sql
 -- In Athena or Glue Spark
-ALTER TABLE collections_db.entity_data RENAME TO collections_db.collections_data_staging;
+ALTER TABLE collections_db.entity_data RENAME TO collections_db.collections_data_tbl;
 ```
 
 Or create a new table and migrate data:
@@ -94,7 +94,7 @@ aws glue delete-table --database-name collections_db --name entity_view_fry9c
 aws glue delete-table --database-name collections_db --name entity_view_fry15
 
 # Run the updated views job to create new views
-aws glue start-job-run --job-name create-views-dual-engine
+aws glue start-job-run --job-name create-views-normal
 ```
 
 ### Step 5: Update Queries and Applications
@@ -107,7 +107,7 @@ SELECT * FROM collections_db.entity_data;
 SELECT * FROM collections_db.entity_view_fry9c;
 
 -- NEW queries
-SELECT * FROM collections_db.collections_data_staging;
+SELECT * FROM collections_db.collections_data_tbl;
 SELECT * FROM collections_db.fry9c_report_view;
 ```
 
@@ -119,7 +119,7 @@ If you have existing Lake Formation permissions, update them:
 # Grant permissions on new table name
 aws lakeformation grant-permissions \
   --principal DataLakePrincipalIdentifier=arn:aws:iam::ACCOUNT:user/analyst \
-  --resource '{"Table":{"DatabaseName":"collections_db","Name":"collections_data_staging"}}' \
+  --resource '{"Table":{"DatabaseName":"collections_db","Name":"collections_data_tbl"}}' \
   --permissions SELECT DESCRIBE
 
 # Grant permissions on new view pattern
@@ -147,7 +147,7 @@ The new naming convention will be used automatically.
 
 **Athena:**
 ```sql
-SELECT * FROM collections_db.collections_data_staging 
+SELECT * FROM collections_db.collections_data_tbl 
 WHERE seriesid = 'fry9c' 
 LIMIT 10;
 ```
@@ -155,7 +155,7 @@ LIMIT 10;
 **Glue Spark:**
 ```python
 df = spark.sql("""
-    SELECT * FROM glue_catalog.collections_db.collections_data_staging 
+    SELECT * FROM glue_catalog.collections_db.collections_data_tbl 
     WHERE seriesid = 'fry9c' 
     LIMIT 10
 """)
@@ -207,7 +207,7 @@ joined_df.show()
 
 ## Benefits of New Naming Convention
 
-### Table Name: `collections_data_staging`
+### Table Name: `collections_data_tbl`
 ✅ More descriptive - indicates this is staging data for collections
 ✅ Follows naming best practice: `<entity>_<data_type>_<purpose>`
 ✅ Clearly indicates the data layer (staging)
@@ -229,13 +229,13 @@ If you need to rollback to the old naming:
    glue_table_name = "entity_data"
    ```
 
-2. Update `terraform/views_dual_engine_job.tf`:
+2. Update `terraform/views_normal_job.tf`:
    ```hcl
    "--view_prefix" = "entity_view"
    ```
 
 3. Revert the Glue script changes in:
-   - `scripts/glue_create_views_dual_engine.py`
+   - `scripts/glue_create_normal_views.py`
    - `scripts/glue_csv_to_iceberg.py`
 
 4. Run `terraform apply` to update job configurations

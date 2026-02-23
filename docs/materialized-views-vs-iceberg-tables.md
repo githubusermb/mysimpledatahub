@@ -32,7 +32,7 @@ Iceberg tables are **physical tables** that store actual data in Parquet/ORC/Avr
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Iceberg Table: collections_data_staging                     │
+│  Iceberg Table: collections_data_tbl                     │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  Glue Catalog Metadata                                       │
@@ -60,30 +60,30 @@ Iceberg tables are **physical tables** that store actual data in Parquet/ORC/Avr
 #### 1. ACID Transactions
 ```sql
 -- Multiple concurrent writes are safe
-INSERT INTO collections_data_staging VALUES (...);  -- Transaction 1
-INSERT INTO collections_data_staging VALUES (...);  -- Transaction 2
+INSERT INTO collections_data_tbl VALUES (...);  -- Transaction 1
+INSERT INTO collections_data_tbl VALUES (...);  -- Transaction 2
 -- Both succeed without conflicts
 ```
 
 #### 2. Time Travel
 ```sql
 -- Query data as it was at a specific time
-SELECT * FROM collections_data_staging 
+SELECT * FROM collections_data_tbl 
 FOR SYSTEM_TIME AS OF '2024-01-01 00:00:00';
 
 -- Query a specific snapshot
-SELECT * FROM collections_data_staging 
+SELECT * FROM collections_data_tbl 
 FOR SYSTEM_VERSION AS OF 12345;
 ```
 
 #### 3. Schema Evolution
 ```sql
 -- Add columns without rewriting data
-ALTER TABLE collections_data_staging 
+ALTER TABLE collections_data_tbl 
 ADD COLUMN new_field STRING;
 
 -- Rename columns
-ALTER TABLE collections_data_staging 
+ALTER TABLE collections_data_tbl 
 RENAME COLUMN old_name TO new_name;
 ```
 
@@ -99,7 +99,7 @@ table.update_spec() \
 #### 5. Hidden Partitioning
 ```sql
 -- Partition by date, but users don't need to specify it
-SELECT * FROM collections_data_staging 
+SELECT * FROM collections_data_tbl 
 WHERE event_date = '2024-01-01';
 -- Iceberg automatically prunes partitions
 ```
@@ -142,10 +142,10 @@ WHERE event_date = '2024-01-01';
 ### Example: Our Use Case
 
 ```python
-# collections_data_staging - Iceberg Table
+# collections_data_tbl - Iceberg Table
 # Stores raw MDRM regulatory data in narrow format
 
-CREATE TABLE glue_catalog.iceberg_db.collections_data_staging
+CREATE TABLE glue_catalog.iceberg_db.collections_data_tbl
 USING iceberg
 PARTITIONED BY (seriesid, ingest_timestamp)
 TBLPROPERTIES (
@@ -186,7 +186,7 @@ Materialized views are **pre-computed query results** stored as physical data, s
 │                                                              │
 │  Glue Catalog Metadata                                       │
 │  ├── View Definition (SQL query)                             │
-│  ├── Base Tables (collections_data_staging)                  │
+│  ├── Base Tables (collections_data_tbl)                  │
 │  ├── Last Refresh Time                                       │
 │  └── Refresh Schedule                                        │
 │                                                              │
@@ -194,7 +194,7 @@ Materialized views are **pre-computed query results** stored as physical data, s
 │  └── data/                                                   │
 │      └── 00000-0-data.parquet  (pre-computed results)       │
 │                                                              │
-│  Base Table: collections_data_staging                        │
+│  Base Table: collections_data_tbl                        │
 │  └── Source data (may be newer than materialized view)      │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -211,7 +211,7 @@ SELECT
     rssdid,
     COUNT(*) as record_count,
     MAX(submissionts) as latest_submission
-FROM collections_data_staging
+FROM collections_data_tbl
 WHERE seriesid = 'fry9c'
 GROUP BY seriesid, aod, rssdid;
 
@@ -279,7 +279,7 @@ SELECT
     COUNT(*) as total_records,
     SUM(CASE WHEN key LIKE 'RCON%' THEN 1 ELSE 0 END) as rcon_fields,
     MAX(submissionts) as latest_submission
-FROM collections_data_staging
+FROM collections_data_tbl
 GROUP BY seriesid, DATE(aod);
 
 -- Refresh nightly
@@ -313,12 +313,12 @@ Regular views are **virtual tables** with no physical storage - just saved SQL q
 │                                                              │
 │  Glue Catalog Metadata                                       │
 │  ├── View Definition (SQL query)                             │
-│  └── Base Tables (collections_data_staging)                  │
+│  └── Base Tables (collections_data_tbl)                  │
 │                                                              │
 │  No Storage (Virtual)                                        │
 │  └── Query executed every time view is accessed             │
 │                                                              │
-│  Base Table: collections_data_staging                        │
+│  Base Table: collections_data_tbl                        │
 │  └── Source data (always current)                           │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -335,7 +335,7 @@ SELECT
     submissionts,
     MAX(CASE WHEN key = 'RCON2170' THEN value END) AS RCON2170,
     MAX(CASE WHEN key = 'RCON0010' THEN value END) AS RCON0010
-FROM collections_data_staging
+FROM collections_data_tbl
 WHERE seriesid = 'fry9c'
 GROUP BY seriesid, aod, rssdid, submissionts;
 
@@ -374,7 +374,7 @@ Use Iceberg Tables When:
 └── Data is the source of truth
 
 Examples:
-✅ collections_data_staging (raw MDRM data)
+✅ collections_data_tbl (raw MDRM data)
 ✅ Transaction logs
 ✅ Master data tables
 ✅ Streaming data ingestion
@@ -425,7 +425,7 @@ Examples:
 ### Current Implementation
 
 ```
-collections_data_staging (Iceberg Table)
+collections_data_tbl (Iceberg Table)
     ↓
 fry9c_report_view (Regular Multi-Dialect View)
 fry15_report_view (Regular Multi-Dialect View)
@@ -465,7 +465,7 @@ SELECT
     submissionts,
     MAX(CASE WHEN key = 'RCON2170' THEN value END) AS RCON2170,
     -- ... 150+ columns
-FROM collections_data_staging
+FROM collections_data_tbl
 WHERE seriesid = 'fry9c'
 GROUP BY seriesid, aod, rssdid, submissionts;
 
@@ -489,7 +489,7 @@ REFRESH MATERIALIZED VIEW fry9c_report_mv;
 Instead of materialized views, use Iceberg tables with scheduled ETL:
 
 ```
-collections_data_staging (Iceberg - Raw)
+collections_data_tbl (Iceberg - Raw)
     ↓ Glue ETL Job (Scheduled)
 fry9c_report_table (Iceberg - Pivoted)
 fry15_report_table (Iceberg - Pivoted)
@@ -514,7 +514,7 @@ fry15_report_table (Iceberg - Pivoted)
 from pyspark.sql.functions import col, max as spark_max
 
 # Read source data
-source_df = spark.table("glue_catalog.iceberg_db.collections_data_staging")
+source_df = spark.table("glue_catalog.iceberg_db.collections_data_tbl")
 
 # Filter for fry9c
 fry9c_df = source_df.filter(col("seriesid") == "fry9c")
@@ -599,7 +599,7 @@ Need ACID + Performance?
 
 For the MDRM regulatory reporting use case:
 
-1. **Raw Data**: Iceberg Table (`collections_data_staging`)
+1. **Raw Data**: Iceberg Table (`collections_data_tbl`)
    - Source of truth
    - ACID guarantees
    - Time travel

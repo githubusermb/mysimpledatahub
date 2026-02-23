@@ -121,7 +121,7 @@ Sample data with ingest_timestamp:
 ### 2. Query the Table in Athena
 ```sql
 SELECT DISTINCT ingest_timestamp 
-FROM iceberg_db.collections_data_staging;
+FROM iceberg_db.collections_data_tbl;
 
 -- Should return actual timestamp values, not "unknown"
 -- Example: 1770609249
@@ -130,7 +130,7 @@ FROM iceberg_db.collections_data_staging;
 ### 3. Check Partition Structure
 ```sql
 SELECT seriesid, ingest_timestamp, COUNT(*) as row_count
-FROM iceberg_db.collections_data_staging
+FROM iceberg_db.collections_data_tbl
 GROUP BY seriesid, ingest_timestamp;
 
 -- Should show proper grouping by timestamp
@@ -139,7 +139,7 @@ GROUP BY seriesid, ingest_timestamp;
 ### 4. Verify S3 Partition Folders
 Check the Iceberg data folder structure:
 ```
-s3://iceberg-data-bucket/iceberg-data/collections_data_staging/data/
+s3://iceberg-data-bucket/iceberg-data/collections_data_tbl/data/
 ├── seriesid=fry9c/
 │   └── ingest_timestamp=1770609249/
 │       └── *.parquet
@@ -167,7 +167,7 @@ aws logs tail /aws-glue/jobs/output --follow
 
 # 5. Verify the data
 # In Athena:
-SELECT DISTINCT ingest_timestamp FROM iceberg_db.collections_data_staging;
+SELECT DISTINCT ingest_timestamp FROM iceberg_db.collections_data_tbl;
 ```
 
 ## Rollback

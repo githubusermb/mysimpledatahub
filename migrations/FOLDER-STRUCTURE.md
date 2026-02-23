@@ -14,7 +14,7 @@ mysimpledatahub/
 ├── jobs/                                    # AWS Glue ETL Jobs
 │   ├── README.md                            # Job documentation
 │   ├── glue_csv_to_iceberg.py              # Data ingestion job
-│   └── glue_create_views_dual_engine.py    # View creation job
+│   └── glue_create_normal_views.py    # View creation job
 │
 ├── scripts/                                 # Helper & Utility Scripts
 │   ├── generate_sample_csv.py              # Generate test data
@@ -72,7 +72,7 @@ mysimpledatahub/
 ├── ENTITY-DIAGRAMS.md                       # Entity diagrams
 ├── README.md                                # Main documentation
 ├── QUICK-START.md                           # Quick start guide
-├── DUAL-ENGINE-SOLUTION.md                  # Dual-engine views
+├── normal-SOLUTION.md                  # normal views
 ├── MIGRATION-SUMMARY.md                     # Naming migration
 ├── MIGRATION-JOBS-FOLDER.md                 # Jobs folder migration
 ├── UPDATES-REGION-AND-VIEWS.md              # Recent updates
@@ -97,7 +97,7 @@ mysimpledatahub/
 
 **Key Files**:
 - `glue_csv_to_iceberg.py` - Ingests CSV data into Iceberg tables
-- `glue_create_views_dual_engine.py` - Creates multi-dialect views
+- `glue_create_normal_views.py` - Creates multi-dialect views
 
 **When to Add Files Here**:
 - New Glue ETL jobs
@@ -388,7 +388,7 @@ scripts/    → Mix Glue jobs and helper scripts
 |------|---------|
 | Deploy infrastructure | `cd terraform && terraform apply` |
 | Run ingestion job | `aws glue start-job-run --job-name csv-to-iceberg-ingestion` |
-| Run views job | `aws glue start-job-run --job-name create-views-dual-engine` |
+| Run views job | `aws glue start-job-run --job-name create-views-normal` |
 | Generate sample data | `python scripts/generate_sample_csv_mdrm.py` |
 | Setup Lake Formation | `python scripts/setup_lakeformation_complete.py` |
 | Test views | `python scripts/test_views_in_spark.py` |

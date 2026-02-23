@@ -136,7 +136,7 @@ aws s3 cp data.csv s3://${BUCKET}/${PREFIX}/ingest_ts=${TIMESTAMP}/
 --raw_data_bucket sdh-collections-data-ingestion-bucket
 --raw_data_prefix collections-data/
 --database_name collections_db
---table_name collections_data_staging
+--table_name collections_data_tbl
 ```
 
 ## Verification

@@ -2,7 +2,7 @@
 
 ## Problem
 
-When running the `create-views-dual-engine` Glue job, it failed with the error:
+When running the `create-views-normal` Glue job, it failed with the error:
 
 ```
 GlueArgumentError: argument --view_prefix: expected one argument
@@ -30,7 +30,7 @@ Since we changed the view naming pattern from `{prefix}_{seriesid}` to `{seriesi
 
 ## Changes Made
 
-### 1. Updated Glue Script (`glue_create_views_dual_engine.py`)
+### 1. Updated Glue Script (`glue_create_normal_views.py`)
 
 **Before:**
 ```python
@@ -111,10 +111,10 @@ cd terraform
 terraform apply
 
 # 3. Run the Glue job to test
-aws glue start-job-run --job-name create-views-dual-engine
+aws glue start-job-run --job-name create-views-normal
 
 # 4. Monitor the job
-aws glue get-job-runs --job-name create-views-dual-engine --max-results 1
+aws glue get-job-runs --job-name create-views-normal --max-results 1
 
 # 5. Check CloudWatch logs
 aws logs tail /aws-glue/jobs/output --follow
@@ -150,7 +150,7 @@ aws glue get-tables --database-name iceberg_db \
 The job logs should show:
 
 ```
-Creating dual-engine views for iceberg_db.collections_data_staging
+Creating normal views for iceberg_db.collections_data_tbl
 View naming pattern: <seriesid>_report_view
 Athena output location: s3://bucket/athena-results/
 
@@ -172,7 +172,7 @@ SUMMARY
 Views created successfully: 2
 Views failed: 0
 
-✓ Successfully created dual-engine views:
+✓ Successfully created normal views:
   - iceberg_db.fry9c_report_view
   - iceberg_db.fry15_report_view
 ```

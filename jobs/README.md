@@ -14,7 +14,7 @@ This folder contains AWS Glue ETL job scripts for the data pipeline.
 - `raw_data_bucket`: S3 bucket containing raw CSV files
 - `raw_data_prefix`: S3 prefix for raw data (e.g., `collections-data/`)
 - `database_name`: Glue database name (e.g., `collections_db`)
-- `table_name`: Target table name (e.g., `collections_data_staging`)
+- `table_name`: Target table name (e.g., `collections_data_tbl`)
 - `iceberg_data_bucket`: S3 bucket for Iceberg data storage
 - `iceberg_data_prefix`: S3 prefix for Iceberg data (e.g., `iceberg-data/`)
 - `catalog_id`: AWS account ID
@@ -35,7 +35,7 @@ s3://bucket/collections-data/ingest_ts=<timestamp>/file.csv
 
 **Output**:
 ```
-Iceberg Table: collections_data_staging
+Iceberg Table: collections_data_tbl
 Partitions: seriesid=<id>/ingest_timestamp=<ts>/
 ```
 
@@ -46,15 +46,96 @@ aws glue start-job-run --job-name csv-to-iceberg-ingestion
 
 ---
 
-### 2. glue_create_views_dual_engine.py
+### 2. glue_create_normal_views.py
 
-**Purpose**: Creates multi-dialect views that work in both Athena and Glue Spark.
+Creates two dynamic views for both Spark and Athena:
+1. `collections_data_vw` - Same as collections_data_tbl (all data)
+2. `cdp_data_vw` - Filtered by specific seriesid
 
-**Glue Job Name**: `create-views-dual-engine`
+**Purpose**: Provide simple views for querying all data or specific seriesid data.
 
 **Parameters**:
 - `database_name`: Glue database name (e.g., `collections_db`)
-- `source_table_name`: Source table name (e.g., `collections_data_staging`)
+- `source_table_name`: Source table name (e.g., `collections_data_tbl`)
+- `cdp_seriesid_filter`: Seriesid to filter for cdp_data_vw (e.g., `FRY9C`, `FRY15`, `FR2004A`)
+- `athena_output_location`: S3 location for Athena query results
+- `aws_region`: AWS region (e.g., `us-east-1`)
+
+**Views Created**:
+
+1. **collections_data_vw**
+   - Contains all data from collections_data_tbl
+   - No filtering applied
+   - Same schema as source table
+
+2. **cdp_data_vw**
+   - Contains data filtered by seriesid
+   - Filter value is externalized as job parameter
+   - Same schema as source table
+
+**Query Examples**:
+
+Athena:
+```sql
+-- Query all data
+SELECT * FROM collections_db.collections_data_vw
+WHERE aod = '20230131'
+LIMIT 10;
+
+-- Query CDP filtered data
+SELECT * FROM collections_db.cdp_data_vw
+WHERE aod = '20230131'
+LIMIT 10;
+```
+
+Glue Spark:
+```sql
+-- Query all data
+SELECT * FROM glue_catalog.collections_db.collections_data_vw
+WHERE aod = '20230131'
+LIMIT 10;
+
+-- Query CDP filtered data
+SELECT * FROM glue_catalog.collections_db.cdp_data_vw
+WHERE aod = '20230131'
+LIMIT 10;
+```
+
+**Changing the CDP Filter**:
+
+To change which seriesid is filtered in cdp_data_vw, update the Terraform configuration:
+
+```hcl
+# In terraform/views_normal_job.tf
+default_arguments = {
+  ...
+  "--cdp_seriesid_filter"  = "FRY15"  # Change from FRY9C to FRY15
+  ...
+}
+```
+
+Then run `terraform apply` and manually trigger the job to recreate the view.
+
+**Output**:
+```
+Views created:
+- collections_data_vw (all data)
+- cdp_data_vw (filtered by seriesid)
+```
+
+**Trigger**: Automatically runs after `csv-to-iceberg-ingestion` job succeeds.
+
+**Execution Time**: ~1-2 minutes.
+
+---
+
+**Purpose**: Creates multi-dialect views that work in both Athena and Glue Spark.
+
+**Glue Job Name**: `create-views-normal`
+
+**Parameters**:
+- `database_name`: Glue database name (e.g., `collections_db`)
+- `source_table_name`: Source table name (e.g., `collections_data_tbl`)
 - `athena_output_location`: S3 location for Athena query results
 - `aws_region`: AWS region (e.g., `us-east-1`)
 
@@ -80,7 +161,7 @@ aws glue start-job-run --job-name csv-to-iceberg-ingestion
 
 **Usage**:
 ```bash
-aws glue start-job-run --job-name create-views-dual-engine
+aws glue start-job-run --job-name create-views-normal
 ```
 
 **Query Examples**:
@@ -101,9 +182,9 @@ spark.sql("SELECT * FROM glue_catalog.collections_db.fry9c_report_view")
 ```
 glue_csv_to_iceberg.py
     ↓ (creates table)
-collections_data_staging
+collections_data_tbl
     ↓ (triggers)
-glue_create_views_dual_engine.py
+glue_create_normal_views.py
     ↓ (creates views)
 collections_data_view + <seriesid>_report_view
 ```
@@ -159,7 +240,7 @@ pip install pylint
 
 # Lint scripts
 pylint jobs/glue_csv_to_iceberg.py
-pylint jobs/glue_create_views_dual_engine.py
+pylint jobs/glue_create_normal_views.py
 ```
 
 ---
@@ -246,7 +327,7 @@ mysimpledatahub/
 ├── jobs/                           # Glue job scripts (this folder)
 │   ├── README.md                   # This file
 │   ├── glue_csv_to_iceberg.py      # Data ingestion job
-│   └── glue_create_views_dual_engine.py  # View creation job
+│   └── glue_create_normal_views.py  # View creation job
 │
 ├── scripts/                        # Helper scripts (not Glue jobs)
 │   ├── generate_sample_csv.py
@@ -297,3 +378,105 @@ mysimpledatahub/
 
 **Last Updated**: February 11, 2026  
 **Status**: Production Ready ✅
+
+
+---
+
+## 3. glue_create_series_wide_views.py
+
+Creates series-specific wide (pivoted) views where each distinct `item_mdrm` becomes a column with concatenated context information.
+
+**Purpose**: Transform narrow format data into wide format with context preserved in column values.
+
+**Parameters**:
+- `database_name`: Glue database name (e.g., `collections_db`)
+- `source_table_name`: Source table name (e.g., `collections_data_tbl`)
+- `athena_output_location`: S3 location for Athena query results
+- `aws_region`: AWS region (e.g., `us-east-1`)
+
+**View Naming Pattern**: `<seriesid>_wide_view`
+- Example: `fry9c_wide_view`, `fry15_wide_view`, `fr2004a_wide_view`
+
+**Column Structure**:
+- Fixed columns: `seriesid`, `aod`, `rssdid`, `submission_ts`
+- Dynamic columns: One column per distinct `item_mdrm` value
+
+**Column Value Pattern**:
+```
+<context_level1_mdrm>=<context_level1_value>:<context_level2_mdrm>=<context_level2_value>:<context_level3_mdrm>=<context_level3_value>:<item_value>
+```
+
+If no context exists, only `item_value` is stored.
+
+**Examples**:
+
+For FR2004A with context:
+```
+Column: GSWAM438
+Value:  GSWA0001=1:244360
+```
+
+For FRY9C without context:
+```
+Column: BHCK4435
+Value:  6382456
+```
+
+**Output**:
+```
+Views created:
+- fry9c_wide_view (with ~1900 item_mdrm columns)
+- fry15_wide_view (with ~550 item_mdrm columns)
+- fr2004a_wide_view (with ~80 item_mdrm columns)
+```
+
+**Query Examples**:
+
+Athena:
+```sql
+-- Query FR2004A wide view
+SELECT 
+    seriesid,
+    aod,
+    rssdid,
+    "GSWAM438",
+    "GSWAN749"
+FROM collections_db.fr2004a_wide_view
+WHERE aod = '20241231';
+
+-- Extract item_value from concatenated pattern
+SELECT 
+    seriesid,
+    aod,
+    REGEXP_EXTRACT("GSWAM438", ':([0-9]+)$', 1) AS gswam438_value
+FROM collections_db.fr2004a_wide_view;
+```
+
+Glue Spark:
+```sql
+-- Query FRY9C wide view
+SELECT 
+    seriesid,
+    aod,
+    rssdid,
+    `BHCK4435`,
+    `BHCK4436`
+FROM glue_catalog.collections_db.fry9c_wide_view
+WHERE aod = '20230131';
+```
+
+**Advantages**:
+- Complete context preservation in single column
+- Self-documenting pattern
+- Works for all series types (with or without context)
+- Minimal column count compared to separate context columns
+
+**Use Cases**:
+- Exporting data to external systems expecting wide format
+- Creating reports with all data points as columns
+- Preserving complete lineage information
+- Downstream systems that can parse concatenated values
+
+**Trigger**: Automatically runs after `csv-to-iceberg-ingestion` job succeeds.
+
+**Execution Time**: ~2-5 minutes depending on number of distinct item_mdrm values per series.

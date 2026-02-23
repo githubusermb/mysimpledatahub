@@ -15,7 +15,7 @@ This folder contains documentation about migrations, bugfixes, and changes made 
 - **BUGFIX-VIEW-PREFIX-ARGUMENT.md** - Fix for GlueArgumentError with view_prefix parameter
 
 ### Solution Documents
-- **DUAL-ENGINE-SOLUTION.md** - Documentation of dual-engine (Spark + Athena) view solution
+- **normal-SOLUTION.md** - Documentation of normal (Spark + Athena) view solution
 - **FOLDER-STRUCTURE.md** - Project folder structure documentation
 
 ### Other

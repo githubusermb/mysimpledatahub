@@ -1,22 +1,22 @@
 # Entity Diagrams - MySimpleDataHub
 
 ## Table of Contents
-1. [collections_data_staging Table (Iceberg)](#collections_data_staging-table-iceberg)
+1. [collections_data_tbl Table (Iceberg)](#collections_data_tbl-table-iceberg)
 2. [Series-Specific Views](#series-specific-views)
 3. [Data Transformation Flow](#data-transformation-flow)
 4. [Relationship Diagram](#relationship-diagram)
 
 ---
 
-## collections_data_staging Table (Iceberg)
+## collections_data_tbl Table (Iceberg)
 
 ### Table Structure
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  TABLE: collections_data_staging                                             │
+│  TABLE: collections_data_tbl                                             │
 │  TYPE: Apache Iceberg Table (Format Version 2)                              │
-│  LOCATION: s3://iceberg-data-bucket/iceberg-data/collections_data_staging/   │
+│  LOCATION: s3://iceberg-data-bucket/iceberg-data/collections_data_tbl/   │
 │  PARTITIONED BY: seriesid, ingest_timestamp                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -65,7 +65,7 @@
 ### Physical Storage Layout
 
 ```
-s3://iceberg-data-bucket/iceberg-data/collections_data_staging/
+s3://iceberg-data-bucket/iceberg-data/collections_data_tbl/
 │
 ├── metadata/
 │   ├── v1.metadata.json              # Iceberg metadata (schema, partitions)
@@ -116,7 +116,7 @@ Benefits:
 ✅ Time-based data lifecycle management
 
 Example Query Optimization:
-  SELECT * FROM collections_data_staging 
+  SELECT * FROM collections_data_tbl 
   WHERE seriesid = 'fry9c' 
     AND ingest_timestamp = '1770609249'
   
@@ -145,7 +145,7 @@ Examples:
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  VIEW: fry9c_report_view                                                     │
 │  TYPE: PROTECTED MULTI DIALECT VIEW                                          │
-│  BASE TABLE: collections_data_staging                                        │
+│  BASE TABLE: collections_data_tbl                                        │
 │  FILTER: WHERE seriesid = 'fry9c'                                            │
 │  TRANSFORMATION: Pivot (key → columns)                                       │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -205,7 +205,7 @@ SELECT
     MAX(CASE WHEN key = 'RCON2200' THEN value ELSE NULL END) AS `RCON2200`
     -- ... additional columns for each distinct key
 FROM 
-    glue_catalog.collections_db.collections_data_staging
+    glue_catalog.collections_db.collections_data_tbl
 WHERE
     seriesid = 'fry9c'
 GROUP BY 
@@ -225,7 +225,7 @@ SELECT
     MAX(CASE WHEN key = 'RCON2200' THEN value ELSE NULL END) AS "RCON2200"
     -- ... additional columns for each distinct key
 FROM 
-    collections_db.collections_data_staging
+    collections_db.collections_data_tbl
 WHERE
     seriesid = 'fry9c'
 GROUP BY 
@@ -238,7 +238,7 @@ GROUP BY
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  VIEW: fry15_report_view                                                     │
 │  TYPE: PROTECTED MULTI DIALECT VIEW                                          │
-│  BASE TABLE: collections_data_staging                                        │
+│  BASE TABLE: collections_data_tbl                                        │
 │  FILTER: WHERE seriesid = 'fry15'                                            │
 │  TRANSFORMATION: Pivot (key → columns)                                       │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -314,7 +314,7 @@ fry9c,2024-03-31,123456,1711900800,RCON2200,75000
                             ↓ (glue_csv_to_iceberg.py)
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  STEP 2: collections_data_staging Table (Narrow Format - Iceberg)           │
+│  STEP 2: collections_data_tbl Table (Narrow Format - Iceberg)           │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────┬────────────┬─────────┬──────────────┬───────────┬────────┬─────────────────┐
@@ -385,7 +385,7 @@ Example:
                                    │ (csv-to-iceberg-ingestion)
                                    ▼
                     ┌──────────────────────────────┐
-                    │     collections_data_staging │
+                    │     collections_data_tbl │
                     │  (Iceberg Table)             │
                     │                              │
                     │  PK: (seriesid, aod,         │
@@ -438,11 +438,11 @@ Example:
 ### Cardinality
 
 ```
-CSV Files (1:N) → collections_data_staging Table
+CSV Files (1:N) → collections_data_tbl Table
   • One CSV file can contain multiple rows
   • Multiple CSV files can be ingested into one table
 
-collections_data_staging Table (1:N) → Series Views
+collections_data_tbl Table (1:N) → Series Views
   • One table contains data for multiple series
   • Each series gets its own view
 
@@ -450,8 +450,8 @@ Series View (1:1) → seriesid
   • Each view represents exactly one seriesid
   • One seriesid has exactly one view
 
-collections_data_staging Row (N:1) → View Row
-  • Multiple collections_data_staging rows (different keys) 
+collections_data_tbl Row (N:1) → View Row
+  • Multiple collections_data_tbl rows (different keys) 
     → Pivot into one view row
   • Grouped by: seriesid, aod, rssdid, submissionts
 ```
@@ -464,7 +464,7 @@ Source → Staging → Production → Consumption
 CSV File
   └─> S3 Raw Data Bucket (collections-data/ingest_ts=<ts>/)
       └─> Glue Job: csv-to-iceberg-ingestion
-          └─> collections_data_staging Table (iceberg-data/collections_data_staging/)
+          └─> collections_data_tbl Table (iceberg-data/collections_data_tbl/)
               └─> Glue Job: create-views-dual-engine
                   └─> <seriesid>_report_view Views
                       ├─> Athena Queries
@@ -475,18 +475,18 @@ CSV File
 
 ## Query Examples
 
-### Query collections_data_staging Table
+### Query collections_data_tbl Table
 
 ```sql
 -- Athena
-SELECT * FROM collections_db.collections_data_staging 
+SELECT * FROM collections_db.collections_data_tbl 
 WHERE seriesid = 'fry9c' 
   AND ingest_timestamp = '1770609249'
 LIMIT 10;
 
 -- Glue Spark
 spark.sql("""
-    SELECT * FROM glue_catalog.collections_db.collections_data_staging 
+    SELECT * FROM glue_catalog.collections_db.collections_data_tbl 
     WHERE seriesid = 'fry9c' 
       AND ingest_timestamp = '1770609249'
     LIMIT 10
@@ -531,3 +531,476 @@ WHERE f9.aod = '2024-03-31';
 **Version**: 1.0  
 **Last Updated**: February 11, 2026  
 **Status**: Production Ready ✅
+
+
+---
+
+## Pivoted View Example for Collections Data
+
+### Overview
+
+The collections_data_tbl table stores data in a narrow (EAV) format with columns:
+- `seriesid`, `aod`, `rssdid`, `submission_ts` (grouping keys)
+- `item_mdrm`, `item_desc`, `item_value` (item data)
+- `context_level1_mdrm`, `context_level1_desc`, `context_level1_value` (context data)
+- `context_level2_mdrm`, `context_level2_desc`, `context_level2_value` (additional context)
+- `context_level3_mdrm`, `context_level3_desc`, `context_level3_value` (additional context)
+- `ingest_timestamp` (partition key - extracted from S3 path)
+
+### Pivoted View Structure
+
+When creating a pivoted view, each distinct `item_mdrm` value becomes a column containing the corresponding `item_value`.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  VIEW: fry9c_pivoted_view                                                    │
+│  TYPE: PROTECTED MULTI DIALECT VIEW                                          │
+│  BASE TABLE: collections_data_tbl                                            │
+│  FILTER: WHERE seriesid = 'FRY9C'                                            │
+│  TRANSFORMATION: Pivot (item_mdrm → columns with item_value)                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┬──────────────┬──────────────┬─────────────────────────────┐
+│  Column Name     │  Data Type   │  Nullable    │  Description                │
+├──────────────────┼──────────────┼──────────────┼─────────────────────────────┤
+│  seriesid        │  STRING      │  NO          │  Series identifier          │
+│                  │              │              │  (always 'FRY9C')           │
+├──────────────────┼──────────────┼──────────────┼─────────────────────────────┤
+│  aod             │  STRING      │  YES         │  As-of-date (20230131)      │
+├──────────────────┼──────────────┼──────────────┼─────────────────────────────┤
+│  rssdid          │  STRING      │  YES         │  RSSD identifier (1234567)  │
+├──────────────────┼──────────────┼──────────────┼─────────────────────────────┤
+│  submission_ts   │  STRING      │  YES         │  Submission timestamp       │
+├──────────────────┼──────────────┼──────────────┼─────────────────────────────┤
+│  BHCK4435        │  STRING      │  YES         │  Pivoted: item_value for    │
+│                  │              │              │  item_mdrm='BHCK4435'       │
+├──────────────────┼──────────────┼──────────────┼─────────────────────────────┤
+│  BHCK4436        │  STRING      │  YES         │  Pivoted: item_value for    │
+│                  │              │              │  item_mdrm='BHCK4436'       │
+├──────────────────┼──────────────┼──────────────┼─────────────────────────────┤
+│  BHCKF821        │  STRING      │  YES         │  Pivoted: item_value for    │
+│                  │              │              │  item_mdrm='BHCKF821'       │
+├──────────────────┼──────────────┼──────────────┼─────────────────────────────┤
+│  ...             │  STRING      │  YES         │  Additional pivoted columns │
+│                  │              │              │  (one per distinct item_mdrm)│
+└──────────────────┴──────────────┴──────────────┴─────────────────────────────┘
+```
+
+### Handling Context Levels in Pivoted Views
+
+#### Option 1: Exclude Context Columns (Recommended for Simple Reports)
+
+**Use Case:** When you only need the item values for reporting and analysis.
+
+**Approach:** Pivot only `item_mdrm` → `item_value`, exclude all context columns.
+
+```sql
+CREATE PROTECTED MULTI DIALECT VIEW glue_catalog.collections_db.fry9c_pivoted_view
+SECURITY DEFINER
+AS
+SELECT 
+    seriesid,
+    aod,
+    rssdid,
+    submission_ts,
+    MAX(CASE WHEN item_mdrm = 'BHCK4435' THEN item_value ELSE NULL END) AS `BHCK4435`,
+    MAX(CASE WHEN item_mdrm = 'BHCK4436' THEN item_value ELSE NULL END) AS `BHCK4436`,
+    MAX(CASE WHEN item_mdrm = 'BHCKF821' THEN item_value ELSE NULL END) AS `BHCKF821`,
+    MAX(CASE WHEN item_mdrm = 'BHCK4059' THEN item_value ELSE NULL END) AS `BHCK4059`
+    -- ... additional columns for each distinct item_mdrm
+FROM 
+    glue_catalog.collections_db.collections_data_tbl
+WHERE
+    seriesid = 'FRY9C'
+GROUP BY 
+    seriesid, aod, rssdid, submission_ts
+```
+
+**Sample Output:**
+```
+┌──────────┬──────────┬─────────┬───────────────┬──────────┬──────────┬──────────┬──────────┐
+│ seriesid │   aod    │ rssdid  │ submission_ts │ BHCK4435 │ BHCK4436 │ BHCKF821 │ BHCK4059 │
+├──────────┼──────────┼─────────┼───────────────┼──────────┼──────────┼──────────┼──────────┤
+│ FRY9C    │ 20230131 │ 1234567 │ 1740000002    │ 6382456  │ 1989171  │ 8709917  │ 1654013  │
+│ FRY9C    │ 20231231 │ 2345678 │ 1740000002    │ 5123456  │ 2345678  │ 7890123  │ 1234567  │
+└──────────┴──────────┴─────────┴───────────────┴──────────┴──────────┴──────────┴──────────┘
+```
+
+#### Option 2: Include Context as Separate Columns (For Detailed Analysis)
+
+**Use Case:** When you need both item values and their context information.
+
+**Approach:** Add context columns as additional grouping keys or as separate pivoted columns.
+
+```sql
+CREATE PROTECTED MULTI DIALECT VIEW glue_catalog.collections_db.fr2004a_pivoted_with_context_view
+SECURITY DEFINER
+AS
+SELECT 
+    seriesid,
+    aod,
+    rssdid,
+    submission_ts,
+    -- Include context as grouping columns
+    MAX(context_level1_mdrm) AS context_level1_mdrm,
+    MAX(context_level1_desc) AS context_level1_desc,
+    MAX(context_level1_value) AS context_level1_value,
+    -- Pivot item values
+    MAX(CASE WHEN item_mdrm = 'GSWAM438' THEN item_value ELSE NULL END) AS `GSWAM438`,
+    MAX(CASE WHEN item_mdrm = 'GSWAN749' THEN item_value ELSE NULL END) AS `GSWAN749`,
+    MAX(CASE WHEN item_mdrm = 'GSWAM440' THEN item_value ELSE NULL END) AS `GSWAM440`
+    -- ... additional columns for each distinct item_mdrm
+FROM 
+    glue_catalog.collections_db.collections_data_tbl
+WHERE
+    seriesid = 'FR2004A'
+GROUP BY 
+    seriesid, aod, rssdid, submission_ts
+```
+
+**Sample Output:**
+```
+┌──────────┬──────────┬─────────┬───────────────┬──────────────────┬───────────────────┬────────────────────┬──────────┬──────────┐
+│ seriesid │   aod    │ rssdid  │ submission_ts │ context_level1_  │ context_level1_   │ context_level1_    │ GSWAM438 │ GSWAN749 │
+│          │          │         │               │ mdrm             │ desc              │ value              │          │          │
+├──────────┼──────────┼─────────┼───────────────┼──────────────────┼───────────────────┼────────────────────┼──────────┼──────────┤
+│ FR2004A  │ 20241231 │ 2345678 │ 1740000002    │ GSWA0001         │ Long  1           │ 1                  │ 244360   │ 8671856  │
+└──────────┴──────────┴─────────┴───────────────┴──────────────────┴───────────────────┴────────────────────┴──────────┴──────────┘
+```
+
+#### Option 3: Composite Column Names (For Complex Hierarchies)
+
+**Use Case:** When context levels create different dimensions and you need to distinguish values by context.
+
+**Approach:** Create column names that combine `item_mdrm` with `context_level1_value` (or other context).
+
+```sql
+CREATE PROTECTED MULTI DIALECT VIEW glue_catalog.collections_db.fr2004a_pivoted_composite_view
+SECURITY DEFINER
+AS
+SELECT 
+    seriesid,
+    aod,
+    rssdid,
+    submission_ts,
+    -- Create composite columns: item_mdrm + context
+    MAX(CASE WHEN item_mdrm = 'GSWAM438' AND context_level1_value = '1' THEN item_value ELSE NULL END) AS `GSWAM438_CTX1`,
+    MAX(CASE WHEN item_mdrm = 'GSWAM438' AND context_level1_value = '2' THEN item_value ELSE NULL END) AS `GSWAM438_CTX2`,
+    MAX(CASE WHEN item_mdrm = 'GSWAN749' AND context_level1_value = '1' THEN item_value ELSE NULL END) AS `GSWAN749_CTX1`,
+    MAX(CASE WHEN item_mdrm = 'GSWAN749' AND context_level1_value = '2' THEN item_value ELSE NULL END) AS `GSWAN749_CTX2`
+    -- ... additional columns for each distinct item_mdrm + context combination
+FROM 
+    glue_catalog.collections_db.collections_data_tbl
+WHERE
+    seriesid = 'FR2004A'
+GROUP BY 
+    seriesid, aod, rssdid, submission_ts
+```
+
+### Recommendations
+
+1. **Exclude item_desc from pivoted columns**: The `item_desc` is descriptive metadata that doesn't change. Store it in a separate reference table or exclude it from the view to keep the view clean.
+
+2. **Context handling strategy**:
+   - **Simple series (FRY9C, FRY15)**: Use Option 1 - exclude context columns since they're mostly empty
+   - **Complex series (FR2004A)**: Use Option 2 - include context as separate columns for filtering and grouping
+   - **Multi-dimensional data**: Use Option 3 - create composite column names when the same item_mdrm appears with different contexts
+
+3. **Performance considerations**:
+   - Pivoted views with many columns (1000+) may have slower query performance
+   - Consider creating multiple views by category or subsection if you have too many item_mdrm values
+   - Use partition pruning by including `seriesid` filter in WHERE clause
+
+4. **Athena dialect**: When adding Athena dialect, use double quotes for column names instead of backticks:
+   ```sql
+   ALTER VIEW collections_db.fry9c_pivoted_view ADD DIALECT AS
+   SELECT 
+       seriesid,
+       aod,
+       rssdid,
+       submission_ts,
+       MAX(CASE WHEN item_mdrm = 'BHCK4435' THEN item_value ELSE NULL END) AS "BHCK4435",
+       MAX(CASE WHEN item_mdrm = 'BHCK4436' THEN item_value ELSE NULL END) AS "BHCK4436"
+       -- ...
+   FROM collections_db.collections_data_tbl
+   WHERE seriesid = 'FRY9C'
+   GROUP BY seriesid, aod, rssdid, submission_ts
+   ```
+
+### Complete Example: FRY9C Pivoted View
+
+```sql
+-- Step 1: Create the protected multi-dialect view (Spark SQL)
+CREATE PROTECTED MULTI DIALECT VIEW glue_catalog.collections_db.fry9c_pivoted_view
+SECURITY DEFINER
+AS
+SELECT 
+    seriesid,
+    aod,
+    rssdid,
+    submission_ts,
+    MAX(CASE WHEN item_mdrm = 'BHCK4435' THEN item_value ELSE NULL END) AS `BHCK4435`,
+    MAX(CASE WHEN item_mdrm = 'BHCK4436' THEN item_value ELSE NULL END) AS `BHCK4436`,
+    MAX(CASE WHEN item_mdrm = 'BHCKF821' THEN item_value ELSE NULL END) AS `BHCKF821`,
+    MAX(CASE WHEN item_mdrm = 'BHCK4059' THEN item_value ELSE NULL END) AS `BHCK4059`,
+    MAX(CASE WHEN item_mdrm = 'BHCK4065' THEN item_value ELSE NULL END) AS `BHCK4065`
+    -- Add all other distinct item_mdrm values as columns
+FROM 
+    glue_catalog.collections_db.collections_data_tbl
+WHERE
+    seriesid = 'FRY9C'
+GROUP BY 
+    seriesid, aod, rssdid, submission_ts;
+
+-- Step 2: Add Athena dialect
+ALTER VIEW collections_db.fry9c_pivoted_view ADD DIALECT AS
+SELECT 
+    seriesid,
+    aod,
+    rssdid,
+    submission_ts,
+    MAX(CASE WHEN item_mdrm = 'BHCK4435' THEN item_value ELSE NULL END) AS "BHCK4435",
+    MAX(CASE WHEN item_mdrm = 'BHCK4436' THEN item_value ELSE NULL END) AS "BHCK4436",
+    MAX(CASE WHEN item_mdrm = 'BHCKF821' THEN item_value ELSE NULL END) AS "BHCKF821",
+    MAX(CASE WHEN item_mdrm = 'BHCK4059' THEN item_value ELSE NULL END) AS "BHCK4059",
+    MAX(CASE WHEN item_mdrm = 'BHCK4065' THEN item_value ELSE NULL END) AS "BHCK4065"
+    -- Add all other distinct item_mdrm values as columns
+FROM 
+    collections_db.collections_data_tbl
+WHERE
+    seriesid = 'FRY9C'
+GROUP BY 
+    seriesid, aod, rssdid, submission_ts;
+```
+
+### Querying the Pivoted View
+
+```sql
+-- Query in Athena
+SELECT 
+    aod,
+    rssdid,
+    "BHCK4435" AS loans_residential,
+    "BHCK4436" AS loans_other_real_estate,
+    "BHCKF821" AS loans_other
+FROM collections_db.fry9c_pivoted_view
+WHERE aod = '20230131'
+ORDER BY rssdid;
+
+-- Query in Glue Spark
+SELECT 
+    aod,
+    rssdid,
+    `BHCK4435` AS loans_residential,
+    `BHCK4436` AS loans_other_real_estate,
+    `BHCKF821` AS loans_other
+FROM glue_catalog.collections_db.fry9c_pivoted_view
+WHERE aod = '20230131'
+ORDER BY rssdid;
+```
+
+
+#### Option 4: Concatenated Context Pattern (Comprehensive Single-Column Approach)
+
+**Use Case:** When you want to preserve all context information within each pivoted column value using a structured pattern.
+
+**Approach:** Concatenate context levels with item_value using the pattern:
+`<context_level1_mdrm>=<context_level1_value>:<context_level2_mdrm>=<context_level2_value>:<context_level3_mdrm>=<context_level3_value>:<item_value>`
+
+If no context exists, store only the `item_value`.
+
+**SQL Implementation:**
+
+```sql
+CREATE PROTECTED MULTI DIALECT VIEW glue_catalog.collections_db.fr2004a_pivoted_concat_view
+SECURITY DEFINER
+AS
+SELECT 
+    seriesid,
+    aod,
+    rssdid,
+    submission_ts,
+    MAX(CASE WHEN item_mdrm = 'GSWAM438' THEN 
+        CASE 
+            WHEN context_level1_mdrm IS NOT NULL AND context_level1_mdrm != '' THEN
+                CONCAT(
+                    COALESCE(context_level1_mdrm, ''), '=', COALESCE(context_level1_value, ''),
+                    CASE WHEN context_level2_mdrm IS NOT NULL AND context_level2_mdrm != '' 
+                         THEN CONCAT(':', context_level2_mdrm, '=', COALESCE(context_level2_value, ''))
+                         ELSE '' END,
+                    CASE WHEN context_level3_mdrm IS NOT NULL AND context_level3_mdrm != '' 
+                         THEN CONCAT(':', context_level3_mdrm, '=', COALESCE(context_level3_value, ''))
+                         ELSE '' END,
+                    ':', item_value
+                )
+            ELSE item_value
+        END
+    ELSE NULL END) AS `GSWAM438`,
+    
+    MAX(CASE WHEN item_mdrm = 'GSWAN749' THEN 
+        CASE 
+            WHEN context_level1_mdrm IS NOT NULL AND context_level1_mdrm != '' THEN
+                CONCAT(
+                    COALESCE(context_level1_mdrm, ''), '=', COALESCE(context_level1_value, ''),
+                    CASE WHEN context_level2_mdrm IS NOT NULL AND context_level2_mdrm != '' 
+                         THEN CONCAT(':', context_level2_mdrm, '=', COALESCE(context_level2_value, ''))
+                         ELSE '' END,
+                    CASE WHEN context_level3_mdrm IS NOT NULL AND context_level3_mdrm != '' 
+                         THEN CONCAT(':', context_level3_mdrm, '=', COALESCE(context_level3_value, ''))
+                         ELSE '' END,
+                    ':', item_value
+                )
+            ELSE item_value
+        END
+    ELSE NULL END) AS `GSWAN749`,
+    
+    MAX(CASE WHEN item_mdrm = 'GSWAM440' THEN 
+        CASE 
+            WHEN context_level1_mdrm IS NOT NULL AND context_level1_mdrm != '' THEN
+                CONCAT(
+                    COALESCE(context_level1_mdrm, ''), '=', COALESCE(context_level1_value, ''),
+                    CASE WHEN context_level2_mdrm IS NOT NULL AND context_level2_mdrm != '' 
+                         THEN CONCAT(':', context_level2_mdrm, '=', COALESCE(context_level2_value, ''))
+                         ELSE '' END,
+                    CASE WHEN context_level3_mdrm IS NOT NULL AND context_level3_mdrm != '' 
+                         THEN CONCAT(':', context_level3_mdrm, '=', COALESCE(context_level3_value, ''))
+                         ELSE '' END,
+                    ':', item_value
+                )
+            ELSE item_value
+        END
+    ELSE NULL END) AS `GSWAM440`,
+    
+    MAX(CASE WHEN item_mdrm = 'GSWAM442' THEN 
+        CASE 
+            WHEN context_level1_mdrm IS NOT NULL AND context_level1_mdrm != '' THEN
+                CONCAT(
+                    COALESCE(context_level1_mdrm, ''), '=', COALESCE(context_level1_value, ''),
+                    CASE WHEN context_level2_mdrm IS NOT NULL AND context_level2_mdrm != '' 
+                         THEN CONCAT(':', context_level2_mdrm, '=', COALESCE(context_level2_value, ''))
+                         ELSE '' END,
+                    CASE WHEN context_level3_mdrm IS NOT NULL AND context_level3_mdrm != '' 
+                         THEN CONCAT(':', context_level3_mdrm, '=', COALESCE(context_level3_value, ''))
+                         ELSE '' END,
+                    ':', item_value
+                )
+            ELSE item_value
+        END
+    ELSE NULL END) AS `GSWAM442`
+    -- ... additional columns for each distinct item_mdrm
+FROM 
+    glue_catalog.collections_db.collections_data_tbl
+WHERE
+    seriesid = 'FR2004A'
+GROUP BY 
+    seriesid, aod, rssdid, submission_ts;
+```
+
+**Sample Output for FR2004A:**
+
+```
+┌──────────┬──────────┬─────────┬───────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┐
+│ seriesid │   aod    │ rssdid  │ submission_ts │      GSWAM438       │      GSWAN749       │      GSWAM440       │      GSWAM442       │
+├──────────┼──────────┼─────────┼───────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┤
+│ FR2004A  │ 20241231 │ 2345678 │ 1740000002    │ GSWA0001=1:244360   │ GSWA0001=1:8671856  │ GSWA0001=1:9200484  │ GSWA0001=1:7275289  │
+└──────────┴──────────┴─────────┴───────────────┴─────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┘
+```
+
+**Detailed Breakdown:**
+
+For the FR2004A series with context data:
+- **Original row**: `FR2004A,20241231,2345678,1740000002,GSWAM438,1a Bills,244360,GSWA0001,Long  1,1,,,,,,`
+- **Pivoted column value**: `GSWA0001=1:244360`
+  - `GSWA0001` = context_level1_mdrm
+  - `1` = context_level1_value
+  - `244360` = item_value
+  - No context_level2 or context_level3, so they're omitted
+
+For series without context (like FRY9C):
+- **Original row**: `FRY9C,20230131,1234567,1740000002,BHCK4435,(a) Loans secured by 1- 4 family residential properties,6382456,,,,,,,,,`
+- **Pivoted column value**: `6382456`
+  - Only item_value since all context fields are empty
+
+**Complete Example View Structure:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  VIEW: fr2004a_pivoted_concat_view                                           │
+│  TYPE: PROTECTED MULTI DIALECT VIEW                                          │
+│  BASE TABLE: collections_data_tbl                                            │
+│  FILTER: WHERE seriesid = 'FR2004A'                                          │
+│  TRANSFORMATION: Pivot with concatenated context pattern                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Column Structure:
+├── seriesid (STRING) - Always 'FR2004A'
+├── aod (STRING) - As-of-date (e.g., '20241231')
+├── rssdid (STRING) - Institution ID (e.g., '2345678')
+├── submission_ts (STRING) - Submission timestamp
+├── GSWAM438 (STRING) - Value: "GSWA0001=1:244360"
+├── GSWAN749 (STRING) - Value: "GSWA0001=1:8671856"
+├── GSWAM440 (STRING) - Value: "GSWA0001=1:9200484"
+├── GSWAM442 (STRING) - Value: "GSWA0001=1:7275289"
+├── GSWAM444 (STRING) - Value: "GSWA0001=1:1188668"
+├── GSWAM446 (STRING) - Value: "GSWA0001=1:3157944"
+├── GSWAM448 (STRING) - Value: "GSWA0001=1:5327898"
+├── GSWALF56 (STRING) - Value: "GSWA0001=1:6957830"
+├── GSWALF58 (STRING) - Value: "GSWA0001=1:9486292"
+└── ... (additional item_mdrm columns)
+```
+
+**Parsing the Concatenated Values:**
+
+To extract individual components from the concatenated pattern in downstream applications:
+
+```sql
+-- Extract item_value (last segment after final colon)
+SELECT 
+    seriesid,
+    aod,
+    rssdid,
+    GSWAM438,
+    -- Extract just the numeric value
+    REGEXP_EXTRACT(GSWAM438, ':([0-9]+)$', 1) AS gswam438_value,
+    -- Extract context_level1_mdrm
+    REGEXP_EXTRACT(GSWAM438, '^([^=]+)=', 1) AS gswam438_context1_mdrm,
+    -- Extract context_level1_value
+    REGEXP_EXTRACT(GSWAM438, '^[^=]+=([^:]+)', 1) AS gswam438_context1_value
+FROM collections_db.fr2004a_pivoted_concat_view
+WHERE aod = '20241231';
+```
+
+**Advantages of Option 4:**
+
+1. **Complete information preservation**: All context levels and values are retained in a single column
+2. **Self-documenting**: The pattern makes it clear what each component represents
+3. **Flexible parsing**: Can extract specific components using regex or string functions
+4. **Backward compatible**: Works for both series with context (FR2004A) and without (FRY9C)
+5. **Single view structure**: No need for separate views or additional context columns
+
+**Disadvantages:**
+
+1. **String parsing required**: Need to parse the concatenated string to use individual components
+2. **Not directly sortable/filterable**: Can't directly filter by context values without parsing
+3. **Slightly larger storage**: Storing context labels repeatedly increases data size
+4. **Query complexity**: More complex queries when you need to filter by context
+
+**When to Use Option 4:**
+
+- When you need to preserve complete context information but want a simple column structure
+- When downstream systems can handle string parsing
+- When you want a single view that works for all series types
+- When you need to export data to external systems that expect a flat structure
+
+**Comparison with Other Options:**
+
+| Aspect | Option 1 | Option 2 | Option 3 | Option 4 |
+|--------|----------|----------|----------|----------|
+| Context preservation | ❌ Lost | ✅ Separate cols | ✅ In col name | ✅ In col value |
+| Query simplicity | ✅ Simple | ⚠️ Moderate | ⚠️ Moderate | ⚠️ Needs parsing |
+| Column count | ✅ Minimal | ⚠️ More cols | ❌ Many cols | ✅ Minimal |
+| Filtering by context | ❌ Not possible | ✅ Easy | ✅ Easy | ⚠️ Needs parsing |
+| Works for all series | ✅ Yes | ⚠️ Varies | ⚠️ Varies | ✅ Yes |
+| Storage efficiency | ✅ Efficient | ⚠️ Moderate | ⚠️ Moderate | ⚠️ Larger |
+
+**Recommendation:** Use Option 4 when you need a universal view structure that preserves all information and can be easily exported or shared with external systems that expect a flat, wide format.

@@ -34,7 +34,7 @@ This document summarizes the renaming of AWS resources to follow consistent nami
 ### Documentation Files
 - ✅ `MIGRATION-SUMMARY.md` - Updated all SQL queries and AWS CLI commands
 - ✅ `BUGFIX-INGEST-TIMESTAMP.md` - Updated S3 path example
-- ✅ `DUAL-ENGINE-SOLUTION.md` - Updated view names and queries
+- ✅ `normal-SOLUTION.md` - Updated view names and queries
 - ✅ `QUICK-START.md` - Updated configuration examples and queries
 - ✅ `ENTITY-DIAGRAMS.md` - Updated all view definitions and queries
 - ✅ `jobs/README.md` - Updated parameter examples and queries
@@ -43,7 +43,7 @@ This document summarizes the renaming of AWS resources to follow consistent nami
 
 ### Files NOT Changed (By Design)
 - ❌ `jobs/glue_csv_to_iceberg.py` - Uses parameters, not hardcoded values
-- ❌ `jobs/glue_create_views_dual_engine.py` - Uses parameters, not hardcoded values
+- ❌ `jobs/glue_create_normal_views.py` - Uses parameters, not hardcoded values
 - ❌ `terraform/terraform.tfstate*` - Auto-generated, will update on next apply
 - ❌ `terraform/view_presto.out` - Old output file, not used
 
@@ -70,7 +70,7 @@ If you have existing resources deployed:
 #### Step 1: Backup Existing Data
 ```bash
 # Export table metadata
-aws glue get-table --database-name iceberg_db --name collections_data_staging > backup_table.json
+aws glue get-table --database-name iceberg_db --name collections_data_tbl > backup_table.json
 
 # List existing views
 aws glue get-tables --database-name iceberg_db --query 'TableList[?starts_with(Name, `fry`)].Name'
@@ -135,13 +135,13 @@ SHOW DATABASES;
 
 SHOW TABLES IN collections_db;
 -- Should see:
--- - collections_data_staging
+-- - collections_data_tbl
 -- - collections_data_view
 -- - fry9c_report_view
 -- - fry15_report_view
 
 -- Test queries
-SELECT COUNT(*) FROM collections_db.collections_data_staging;
+SELECT COUNT(*) FROM collections_db.collections_data_tbl;
 SELECT COUNT(*) FROM collections_db.collections_data_view;
 SELECT COUNT(*) FROM collections_db.fry9c_report_view;
 ```
@@ -150,13 +150,13 @@ SELECT COUNT(*) FROM collections_db.fry9c_report_view;
 
 ### Old Queries
 ```sql
-SELECT * FROM iceberg_db.collections_data_staging;
+SELECT * FROM iceberg_db.collections_data_tbl;
 SELECT * FROM iceberg_db.fry9c_report_view;
 ```
 
 ### New Queries
 ```sql
-SELECT * FROM collections_db.collections_data_staging;
+SELECT * FROM collections_db.collections_data_tbl;
 SELECT * FROM collections_db.fry9c_report_view;
 ```
 
@@ -168,7 +168,7 @@ If you have existing Lake Formation permissions, update them:
 # Grant permissions on new database
 python scripts/grant_athena_user_permissions.py \
   --database collections_db \
-  --table collections_data_staging \
+  --table collections_data_tbl \
   --principal <user-arn>
 
 # Grant permissions on views
@@ -211,7 +211,7 @@ After deployment:
 
 - [ ] Verify database exists: `SHOW DATABASES;`
 - [ ] Verify tables exist: `SHOW TABLES IN collections_db;`
-- [ ] Test staging table query: `SELECT COUNT(*) FROM collections_db.collections_data_staging;`
+- [ ] Test staging table query: `SELECT COUNT(*) FROM collections_db.collections_data_tbl;`
 - [ ] Test unified view query: `SELECT COUNT(*) FROM collections_db.collections_data_view;`
 - [ ] Test report view query: `SELECT COUNT(*) FROM collections_db.fry9c_report_view;`
 - [ ] Verify S3 bucket exists and contains data
